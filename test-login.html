@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teste Login</title>
+<style>
+body { background:#07070b; color:#a0ffb8; font-family:monospace; padding:20px; }
+input { display:block; width:100%; padding:12px; margin:8px 0; background:#111; border:1px solid #333; color:#fff; font-size:16px; border-radius:6px; box-sizing:border-box; }
+button { width:100%; padding:14px; background:#a0ffb8; color:#000; font-size:16px; font-weight:bold; border:none; border-radius:6px; cursor:pointer; margin-top:8px; }
+#log { margin-top:16px; padding:12px; background:#111; border-radius:6px; font-size:12px; white-space:pre-wrap; word-break:break-all; min-height:60px; color:#a0ffb8; }
+</style>
+</head>
+<body>
+<h2>⚡ Teste Login Supabase</h2>
+<input type="email" id="email" value="admin@digi.pt" placeholder="email">
+<input type="password" id="pass" value="admin2026" placeholder="password">
+<button onclick="testar()">Testar Ligação</button>
+<div id="log">A aguardar...</div>
+
+<script>
+const SB_URL = 'https://lblnhttwadvofhkhkbsv.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxibG5odHR3YWR2b2Zoa2hrYnN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYzNDM4ODUsImV4cCI6MjA4MTkxOTg4NX0.84jsbGQVJCopVWAdc51BnnFCSJQmCEYs9GpwbFB8n3I';
+
+function log(msg) {
+  document.getElementById('log').textContent += '\n' + msg;
+}
+
+async function testar() {
+  document.getElementById('log').textContent = 'A ligar...';
+  const email = document.getElementById('email').value.trim().toLowerCase();
+  const pass = document.getElementById('pass').value;
+  
+  try {
+    log('URL: ' + SB_URL);
+    const url = `${SB_URL}/rest/v1/digi_users?email=eq.${encodeURIComponent(email)}&select=id,nome,role,ativo`;
+    log('Request: ' + url);
+    
+    const r = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    log('HTTP Status: ' + r.status + ' ' + r.statusText);
+    const txt = await r.text();
+    log('Response: ' + txt);
+    
+    if (r.ok) {
+      const users = JSON.parse(txt);
+      if (users.length > 0) {
+        log('✅ USER ENCONTRADO: ' + users[0].nome);
+      } else {
+        log('❌ User não encontrado');
+      }
+    }
+  } catch(e) {
+    log('❌ ERRO: ' + e.toString());
+  }
+}
+
+testar();
+</script>
+</body>
+</html>
