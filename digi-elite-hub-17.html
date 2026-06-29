@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>DIGI Elite Hub</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+:root{
+  --blue:#0066FF;--blue2:#0052CC;--blue3:#3385FF;--blue-light:#E8F0FF;--blue-ultra:#F0F4FF;
+  --bg:#F5F5F7;--white:#FFFFFF;--border:#E5E5EA;--border2:#D1D1D6;
+  --text:#1C1C1E;--text2:#3C3C43;--muted:#8E8E93;--muted2:#AEAEB2;
+  --green:#34C759;--red:#FF3B30;--orange:#FF9500;--yellow:#FFCC00;--purple:#AF52DE;
+  --shadow:0 2px 16px rgba(0,0,0,.08);--radius:16px;--radius2:12px;--radius3:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:Inter,sans-serif;font-size:13px;-webkit-tap-highlight-color:transparent;}
+
+/* LOGIN */
+#loginScreen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,rgba(160,255,184,0.05) 0%,transparent 60%);}
+.logo{font-family:Inter,sans-serif;font-weight:800;font-size:32px;font-weight:800;color:var(--blue);margin-bottom:4px;letter-spacing:-1px;}
+.logo-sub{font-size:10px;color:var(--muted);margin-bottom:48px;letter-spacing:3px;text-transform:uppercase;}
+.login-box{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:32px 28px;width:100%;max-width:380px;box-shadow:0 24px 60px rgba(0,0,0,.5);}
+.fl{display:block;font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px;}
+.fi{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:13px 16px;color:var(--text);font-family:Inter,sans-serif;font-size:14px;outline:none;transition:border .2s;margin-bottom:14px;}
+.fi:focus{border-color:var(--blue);}
+.btn-login{width:100%;background:var(--blue);color:var(--bg);border:none;border-radius:10px;padding:15px;font-family:Inter,sans-serif;font-weight:800;font-weight:800;font-size:15px;cursor:pointer;margin-top:6px;letter-spacing:.5px;transition:opacity .2s;}
+.btn-login:hover{opacity:.85;}
+#loginMsg{margin-top:14px;font-size:12px;text-align:center;color:var(--red);min-height:18px;}
+
+/* APP SHELL */
+#app{display:none;min-height:100vh;flex-direction:column;}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 16px;height:54px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+.topbar-logo{font-family:Inter,sans-serif;font-weight:800;font-weight:800;font-size:16px;color:var(--blue);flex:1;letter-spacing:-.5px;}
+.role-badge{font-size:9px;background:var(--blue-ultra);color:var(--blue);border:1px solid var(--blue-light);border-radius:20px;padding:3px 10px;letter-spacing:.8px;text-transform:uppercase;}
+.btn-out{background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:Inter,sans-serif;font-size:10px;padding:5px 12px;cursor:pointer;transition:all .15s;}
+.btn-out:hover{color:var(--red);border-color:var(--red);}
+
+/* NAV */
+.nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom);}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px 8px;background:none;border:none;color:var(--muted);font-family:Inter,sans-serif;font-size:8px;cursor:pointer;gap:4px;letter-spacing:.3px;transition:color .15s;position:relative;}
+.nb svg{width:22px;height:22px;transition:all .15s;}
+.nb.active{color:var(--blue);}
+.nb.active svg{filter:drop-shadow(0 0 6px rgba(160,255,184,.4));}
+.nb.active::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:20px;height:2px;background:var(--blue);border-radius:2px;}
+
+/* MAIN */
+.main{flex:1;padding:16px 16px 84px;max-width:600px;margin:0 auto;width:100%;}
+.page{display:none;}.page.active{display:block;}
+
+/* TYPOGRAPHY */
+.sec-title{font-family:Inter,sans-serif;font-weight:800;font-size:20px;font-weight:700;margin-bottom:3px;}
+.sec-sub{font-size:11px;color:var(--muted);margin-bottom:20px;}
+.sec-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;transition:border .2s;}
+.card-title{font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+
+/* STATS */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.stat{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:14px 12px;}
+.stat-n{font-family:Inter,sans-serif;font-weight:800;font-size:22px;font-weight:800;color:var(--blue);line-height:1;}
+.stat-l{font-size:10px;color:var(--muted);margin-top:4px;}
+
+/* PATAMAR */
+.pat-box{background:linear-gradient(135deg,rgba(160,255,184,0.06),rgba(160,255,184,0.02));border:1px solid var(--blue-light);border-radius:14px;padding:16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.pat-n{font-family:Inter,sans-serif;font-weight:800;font-size:36px;font-weight:800;color:var(--blue);line-height:1;}
+.pat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:2px;}
+.pat-val{font-family:Inter,sans-serif;font-weight:800;font-size:14px;font-weight:700;color:var(--blue);}
+.pat-rates{display:flex;gap:10px;margin-top:6px;}
+.pat-r{font-size:10px;color:var(--muted);}
+.pat-r span{color:var(--blue);font-weight:700;}
+
+/* ROWS */
+.row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
+.row:last-child{border-bottom:none;}
+.row-l{font-size:11px;color:var(--muted);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;font-family:Inter,sans-serif;font-size:12px;padding:11px 20px;border-radius:10px;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px;transition:all .15s;}
+.btn-p{background:var(--blue);color:var(--bg);}.btn-p:hover{opacity:.85;}
+.btn-s{background:var(--bg);color:var(--blue);border:1px solid var(--blue-light);}.btn-s:hover{background:var(--blue-ultra);}
+.btn-d{background:var(--bg);color:var(--red);border:1px solid rgba(255,107,107,.2);}
+.btn-y{background:rgba(255,217,61,.1);color:var(--yellow);border:1px solid rgba(255,217,61,.2);}
+.btn-sm{padding:6px 12px;font-size:10px;border-radius:8px;}
+.btn-full{width:100%;justify-content:center;}
+
+/* CHECKIN */
+.checkin-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:28px 20px;text-align:center;margin-bottom:14px;}
+.clock{font-family:Inter,sans-serif;font-weight:800;font-size:48px;font-weight:800;color:var(--blue);letter-spacing:-3px;line-height:1;}
+.clock-date{font-size:11px;color:var(--muted);margin:6px 0 16px;}
+.ci-badge{display:inline-block;font-size:10px;padding:5px 14px;border-radius:20px;margin-bottom:18px;font-weight:700;letter-spacing:.5px;}
+.ci-in{background:rgba(160,255,184,.12);color:var(--blue);border:1px solid var(--blue-light);}
+.ci-out{background:rgba(90,90,122,.12);color:var(--muted);border:1px solid var(--border);}
+
+/* FORMS */
+.fg{margin-bottom:14px;}
+.fsel,.fta{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:Inter,sans-serif;font-size:12px;outline:none;transition:border .2s;}
+.fsel:focus,.fta:focus,.fi:focus{border-color:var(--blue);}
+.fta{resize:vertical;min-height:80px;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* TABLE */
+.tw{overflow-x:auto;border:1px solid var(--border);border-radius:12px;margin-bottom:14px;}
+table{width:100%;border-collapse:collapse;font-size:11px;min-width:360px;}
+thead th{background:var(--bg);padding:10px 12px;text-align:left;font-size:9px;color:var(--blue);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+tbody tr:hover{background:rgba(255,255,255,.02);}
+tbody tr:last-child{border-bottom:none;}
+tbody td{padding:9px 12px;color:var(--text);white-space:nowrap;}
+
+/* BADGES */
+.bv{display:inline-block;font-size:9px;padding:3px 8px;border-radius:20px;font-weight:700;letter-spacing:.3px;}
+.bv-v{background:rgba(160,255,184,.12);color:var(--blue);}
+.bv-n{background:rgba(110,180,255,.12);color:var(--blue3);}
+.bv-i{background:rgba(255,217,61,.12);color:var(--yellow);}
+.bv-c{background:rgba(255,107,107,.12);color:var(--red);}
+.bv-o{background:rgba(90,90,122,.12);color:var(--muted);}
+
+/* TABS */
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.tab{font-family:Inter,sans-serif;font-size:10px;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--white);color:var(--muted);cursor:pointer;transition:all .15s;letter-spacing:.3px;}
+.tab.active,.tab:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-ultra);}
+
+/* RANKING */
+.rank-item{display:flex;align-items:center;gap:12px;padding:14px;background:var(--white);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;transition:border .15s;}
+.rank-item:hover{border-color:var(--blue-light);}
+.rank-pos{font-family:Inter,sans-serif;font-weight:800;font-size:24px;font-weight:800;min-width:38px;text-align:center;}
+.gold{color:#ffd700;text-shadow:0 0 12px rgba(255,215,0,.3);}
+.silver{color:#c0c0c0;}
+.bronze{color:#cd7f32;}
+
+/* USERS */
+.u-item{display:flex;align-items:center;gap:12px;padding:14px;background:var(--white);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;}
+.u-av{width:40px;height:40px;background:var(--blue-ultra);border:1px solid var(--blue-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;font-weight:800;font-weight:800;font-size:15px;color:var(--blue);}
+
+/* PDF UPLOAD ZONE */
+.upload-zone{border:2px dashed var(--border);border-radius:14px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--white);}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--blue);background:var(--blue-ultra);}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload-icon{font-size:40px;margin-bottom:10px;}
+.upload-zone h3{font-family:Inter,sans-serif;font-weight:800;font-size:16px;color:var(--blue);margin-bottom:4px;}
+.upload-zone p{font-size:11px;color:var(--muted);}
+
+/* CONTRACT CARD */
+.contract-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;position:relative;}
+.contract-card.extracting{border-color:var(--blue-light);animation:pulse 1.5s infinite;}
+.contract-card.done{border-color:rgba(160,255,184,.3);}
+.contract-card.err{border-color:rgba(255,107,107,.3);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+.contract-field{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.contract-field:last-child{border-bottom:none;}
+.cf-label{color:var(--muted);min-width:100px;font-size:10px;letter-spacing:.5px;text-transform:uppercase;}
+.cf-val{color:var(--text);text-align:right;font-size:11px;max-width:180px;word-break:break-word;}
+
+/* TOAST */
+.toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);background:var(--white);border:1px solid var(--blue-light);color:var(--blue);padding:10px 22px;border-radius:10px;font-size:12px;font-weight:700;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.toast.err{border-color:rgba(255,107,107,.3);color:var(--red);}
+.toast.show{opacity:1;}
+
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(7,7,11,.88);z-index:200;display:none;align-items:flex-end;justify-content:center;}
+.modal-ov.open{display:flex;}
+.modal{background:var(--white);border:1px solid var(--border);border-top-left-radius:20px;border-top-right-radius:20px;width:100%;max-width:540px;padding:24px;padding-bottom:calc(24px + env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto;}
+.modal-title{font-family:Inter,sans-serif;font-weight:800;font-size:17px;font-weight:700;margin-bottom:20px;}
+.modal-x{float:right;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;margin-top:-4px;}
+
+.empty{text-align:center;padding:48px 20px;color:var(--muted);}
+.empty-icon{font-size:36px;margin-bottom:8px;}
+.empty-text{font-size:12px;}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.progress-bar{background:var(--border);border-radius:4px;height:4px;overflow:hidden;margin:10px 0;}
+.progress-fill{height:100%;background:var(--blue);border-radius:4px;transition:width .3s;}
+
+.finance-big{font-family:Inter,sans-serif;font-weight:800;font-size:28px;font-weight:800;}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+if(typeof pdfjsLib !== 'undefined') pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+</script>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="logo">⚡ DIGI Elite Hub</div>
+  <div class="logo-sub">Plataforma de Equipa D2D</div>
+  <div class="login-box">
+    <label class="fl">Email</label>
+    <input type="email" class="fi" id="lEmail" placeholder="admin@digi.pt">
+    <label class="fl">Password</label>
+    <input type="password" class="fi" id="lPass" placeholder="••••••••">
+    <button class="btn-login" id="lBtn" onclick="doLogin()">Entrar</button>
+    <div id="loginMsg"></div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">⚡ DIGI Elite</div>
+    <span id="tName" style="font-size:11px;color:var(--muted)"></span>
+    <span class="role-badge" id="tRole"></span>
+    <button class="btn-out" onclick="doLogout()">Sair</button>
+  </div>
+  <div class="main" id="MC"></div>
+  <nav class="nav" id="NAV"></nav>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="modal-ov" id="MOV"><div class="modal" id="MCONT"></div></div>
+
+<script>
+const SB='https://lblnhttwadvofhkhkbsv.supabase.co';
+const SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxibG5odHR3YWR2b2Zoa2hrYnN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYzNDM4ODUsImV4cCI6MjA4MTkxOTg4NX0.84jsbGQVJCopVWAdc51BnnFCSJQmCEYs9GpwbFB8n3I';
+const AK=''; // Anthropic API key not needed - using proxy
+
+let CU=null,CLK=null,CP='',CONTRACTS=[];
+
+async function api(table,method,body,qs){
+  qs=qs||'';
+  const h={'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':'application/json'};
+  if(method==='POST'||method==='PATCH')h['Prefer']='return=representation';
+  const opts={method:method||'GET',headers:h};
+  if(body)opts.body=JSON.stringify(body);
+  const r=await fetch(SB+'/rest/v1/'+table+qs,opts);
+  const txt=await r.text();
+  if(!r.ok)throw new Error('HTTP '+r.status+': '+txt.substring(0,120));
+  if(!txt||method==='DELETE')return[];
+  try{return JSON.parse(txt);}catch(e){return[];}
+}
+
+function getPat(n){
+  if(n<=5)  return{label:'até 5',  f:6, tv:6,m:2,  fx:1};
+  if(n<=10) return{label:'6-10',   f:8, tv:6,m:2,  fx:1};
+  if(n<=15) return{label:'11-15',  f:10,tv:6,m:2,  fx:1};
+  if(n<=20) return{label:'16-20',  f:15,tv:6,m:2,  fx:1};
+  if(n<=50) return{label:'21-50',  f:20,tv:6,m:2,  fx:1};
+  if(n<=75) return{label:'51-75',  f:20,tv:6,m:2.5,fx:1};
+  return         {label:'+75',     f:20,tv:6,m:3,  fx:1};
+}
+function calcCom(qtd,pat){var f=1,tv=qtd>=2?1:0,mv=Math.max(0,qtd-2);return f*pat.f+tv*pat.tv+mv*pat.m;}
+function svcs(qtd){if(qtd===1)return'Fibra';if(qtd===2)return'Fibra+TV';return'Fibra+TV+'+(qtd-2)+'Móvel';}
+function today(){return new Date().toISOString().slice(0,10);}
+function nowt(){return new Date().toTimeString().slice(0,5);}
+function fdate(d){if(!d)return'—';var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function badge(s){var m={Validado:'bv-v',Novo:'bv-n',Incompleto:'bv-i',Cancelado:'bv-c'};return'<span class="bv '+(m[s]||'bv-o')+'">'+s+'</span>';}
+
+function toast(msg,err){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast'+(err?' err':'')+' show';
+  setTimeout(function(){t.classList.remove('show');},2800);
+}
+function openModal(html){document.getElementById('MCONT').innerHTML=html;document.getElementById('MOV').classList.add('open');}
+function closeModal(){document.getElementById('MOV').classList.remove('open');}
+document.addEventListener('click',function(e){if(e.target.id==='MOV')closeModal();});
+
+async function doLogin(){
+  var email=document.getElementById('lEmail').value.trim().toLowerCase();
+  var pass=document.getElementById('lPass').value;
+  var msg=document.getElementById('loginMsg');
+  var btn=document.getElementById('lBtn');
+  msg.textContent='';
+  if(!email||!pass){msg.textContent='Preenche os campos';return;}
+  btn.textContent='A entrar...';btn.disabled=true;
+  try{
+    var users=await api('digi_users','GET',null,'?email=eq.'+encodeURIComponent(email)+'&select=*');
+    if(!users.length){msg.textContent='Email não encontrado';btn.textContent='Entrar';btn.disabled=false;return;}
+    var u=users[0];
+    if(u.password_hash!==pass){msg.textContent='Password incorreta';btn.textContent='Entrar';btn.disabled=false;return;}
+    if(!u.ativo){msg.textContent='Conta desativada';btn.textContent='Entrar';btn.disabled=false;return;}
+    CU=u;
+    document.getElementById('loginScreen').style.display='none';
+    var app=document.getElementById('app');app.style.display='flex';app.style.flexDirection='column';
+    document.getElementById('tName').textContent=CU.nome.split(' ')[0];
+    document.getElementById('tRole').textContent=CU.role==='admin'?'Admin':'Consultor';
+    buildNav();
+    goPage(CU.role==='admin'?'aDash':'dash');
+  }catch(e){msg.textContent='Erro: '+e.message;btn.textContent='Entrar';btn.disabled=false;}
+}
+function doLogout(){CU=null;if(CLK)clearInterval(CLK);document.getElementById('loginScreen').style.display='flex';document.getElementById('app').style.display='none';}
+
+var cNav=[
+  {id:'dash',svg:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',label:'Início'},
+  {id:'presenca',svg:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',label:'Presença'},
+  {id:'porta',svg:'<path d="M3 9v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"/><rect x="1" y="3" width="22" height="6" rx="1"/>',label:'Porta'},
+  {id:'chamadas',svg:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.15 12 19.79 19.79 0 0 1 1.08 3.4 2 2 0 0 1 3.05 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>',label:'Chamadas'},
+  {id:'autos',svg:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',label:'Autos'},
+  {id:'treino',svg:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',label:'Treino'},
+];
+var aNav=[
+  {id:'aDash',svg:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',label:'Dashboard'},
+  {id:'aAutos',svg:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',label:'Autos'},
+  {id:'aContratos',svg:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',label:'Contratos'},
+  {id:'aRels',svg:'<path d="M3 9v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"/><rect x="1" y="3" width="22" height="6" rx="1"/>',label:'Relatórios'},
+  {id:'aUsers',svg:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>',label:'Equipa'},
+  {id:'treino',svg:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',label:'Treino'},
+];
+
+
+function showTrainer(){
+  CP='treino';
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  const nb=document.getElementById('nb-treino');if(nb)nb.classList.add('active');
+  const mc=document.getElementById('MC');
+  mc.innerHTML=`
+    <div style="font-size:22px;font-weight:800;letter-spacing:-.4px;margin-bottom:2px">🚀 Elite Trainer</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Simulador IA · Formação · CVP · Quiz</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px" id="trainerTabs">
+      <div class="tab active" onclick="switchTTab('sim',this)">🚀 Simular</div>
+      <div class="tab" onclick="switchTTab('quiz',this)">⚡ Teste</div>
+      <div class="tab" onclick="switchTTab('formacao',this)">📚 Formação</div>
+      <div class="tab" onclick="switchTTab('cvp',this)">📱 CVP</div>
+      <div class="tab" onclick="switchTTab('comissoes',this)">💶 Comissões</div>
+      <div class="tab" onclick="switchTTab('manual',this)">📖 Manual</div>
+    </div>
+    <div id="tContent"></div>`;
+  renderTSim();
+}
+window.switchTTab=(id,btn)=>{
+  document.querySelectorAll('#trainerTabs .tab').forEach(t=>t.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  ({sim:renderTSim,quiz:renderTQuiz,formacao:renderTFormacao,cvp:renderTCVP,comissoes:renderTComissoes,manual:renderTManual})[id]?.();
+};
+function buildNav(){
+  var nav=CU.role==='admin'?aNav:cNav;
+  document.getElementById('NAV').innerHTML=nav.map(function(n){
+    return '<button class="nb" id="nb-'+n.id+'" onclick="goPage(\''+n.id+'\')">'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+n.svg+'</svg>'
+      +n.label+'</button>';
+  }).join('');
+}
+
+function goPage(id){
+  if(id==='treino'){showTrainer();return;}
+  CP=id;
+  document.querySelectorAll('.nb').forEach(function(b){b.classList.remove('active');});
+  var nb=document.getElementById('nb-'+id);if(nb)nb.classList.add('active');
+  document.getElementById('MC').innerHTML='<div class="empty"><div class="spin"></div> A carregar...</div>';
+  if(pages[id])pages[id]();
+}
+
+var pages={};
+
+// ═══════════════════════════════════════════
+// DASH CONSULTOR
+// ═══════════════════════════════════════════
+pages.dash=async function(){
+  var mc=document.getElementById('MC');
+  try{
+    var autos=await api('digi_autos','GET',null,'?user_id=eq.'+CU.id+'&order=data_pedido.desc');
+    var pres=await api('digi_presenca','GET',null,'?user_id=eq.'+CU.id+'&data=eq.'+today()+'&limit=1');
+    var porta=await api('digi_relatorio_porta','GET',null,'?user_id=eq.'+CU.id+'&data=eq.'+today()+'&limit=1');
+    var chams=await api('digi_relatorio_chamadas','GET',null,'?user_id=eq.'+CU.id+'&data=eq.'+today()+'&limit=1');
+    var val=autos.filter(function(a){return a.status==='Validado';});
+    var nov=autos.filter(function(a){return a.status==='Novo';});
+    var can=autos.filter(function(a){return a.status==='Cancelado';});
+    var inc=autos.filter(function(a){return a.status==='Incompleto';});
+    var pat=getPat(val.length);
+    var real=val.reduce(function(s,a){return s+calcCom(a.qtd,pat);},0);
+    var proj=real+nov.reduce(function(s,a){return s+calcCom(a.qtd,getPat(val.length+nov.length));},0);
+    var sub=can.concat(inc).reduce(function(s,a){return s+calcCom(a.qtd,pat);},0);
+    var liq=real-sub;
+    var p=pres[0],po=porta[0],ch=chams[0];
+    mc.innerHTML=
+      '<div class="sec-title">Olá, '+CU.nome.split(' ')[0]+' 👋</div>'
+      +'<div class="sec-sub">'+new Date().toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long'})+'</div>'
+      +'<div class="pat-box">'
+        +'<div><div class="pat-label">Patamar atual</div><div class="pat-val">'+pat.label+' validados</div>'
+        +'<div class="pat-rates"><div class="pat-r">Fibra <span>'+pat.f+'€</span></div><div class="pat-r">TV <span>'+pat.tv+'€</span></div><div class="pat-r">Móvel <span>'+pat.m+'€</span></div></div></div>'
+        +'<div style="text-align:right"><div class="pat-n">'+val.length+'</div><div style="font-size:10px;color:var(--muted)">validados</div></div>'
+      +'</div>'
+      +'<div class="grid2">'
+        +'<div class="stat"><div class="stat-n">'+real.toFixed(1)+'€</div><div class="stat-l">💶 Real</div></div>'
+        +'<div class="stat"><div class="stat-n" style="color:var(--blue3)">'+proj.toFixed(1)+'€</div><div class="stat-l">🔮 Projeção</div></div>'
+        +'<div class="stat"><div class="stat-n" style="color:var(--red)">'+sub.toFixed(1)+'€</div><div class="stat-l">➖ Subtrair</div></div>'
+        +'<div class="stat"><div class="stat-n" style="color:'+(liq>=0?'var(--blue)':'var(--red)')+'">'+liq.toFixed(1)+'€</div><div class="stat-l">💰 Líquido</div></div>'
+      +'</div>'
+      +'<div class="card"><div class="card-title">📅 Atividade de hoje</div>'
+        +'<div class="row"><span class="row-l">Presença</span><span style="font-size:11px;color:'+(p?'var(--blue)':'var(--muted)')+'">'+(p?'✅ '+p.hora_entrada+(p.hora_saida?' → '+p.hora_saida:''):'— Sem check-in')+'</span></div>'
+        +'<div class="row"><span class="row-l">Porta a porta</span><span style="font-size:11px;color:'+(po?'var(--blue)':'var(--muted)')+'">'+(po?'✅ '+po.numero_portas+' portas · '+po.marcacoes+' marc.':'— Sem relatório')+'</span></div>'
+        +'<div class="row"><span class="row-l">Chamadas</span><span style="font-size:11px;color:'+(ch?'var(--blue)':'var(--muted)')+'">'+(ch?'✅ '+ch.total_chamadas+' calls · '+ch.marcacoes+' marc.':'— Sem relatório')+'</span></div>'
+      +'</div>'
+      +'<div class="card"><div class="card-title">📋 Os meus autos</div>'
+        +'<div class="row"><span class="row-l">✅ Validados</span><span style="color:var(--blue);font-weight:700;font-size:14px">'+val.length+'</span></div>'
+        +'<div class="row"><span class="row-l">🆕 Novos</span><span style="color:var(--blue3);font-weight:700;font-size:14px">'+nov.length+'</span></div>'
+        +'<div class="row"><span class="row-l">⚠️ Incompletos</span><span style="color:var(--yellow);font-weight:700;font-size:14px">'+inc.length+'</span></div>'
+        +'<div class="row"><span class="row-l">❌ Cancelados</span><span style="color:var(--red);font-weight:700;font-size:14px">'+can.length+'</span></div>'
+      +'</div>';
+  }catch(e){mc.innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">'+e.message+'</div></div>';}
+};
+
+// ═══════════════════════════════════════════
+// PRESENÇA
+// ═══════════════════════════════════════════
+pages.presenca=async function(){
+  var mc=document.getElementById('MC');
+  try{
+    var pres=await api('digi_presenca','GET',null,'?user_id=eq.'+CU.id+'&data=eq.'+today()+'&order=created_at.desc&limit=1');
+    var hist=await api('digi_presenca','GET',null,'?user_id=eq.'+CU.id+'&order=data.desc&limit=10');
+    var p=pres[0];
+    function clk(){return new Date().toTimeString().slice(0,8);}
+    var ciHtml='';
+    if(!p){
+      ciHtml='<div class="ci-badge ci-out">⚪ SEM CHECK-IN</div>'
+        +'<div class="fg" style="text-align:left;margin-bottom:16px"><label class="fl">Localidade</label><input class="fi" id="loc" placeholder="Ex: Porto - Bonfim" style="margin-bottom:0"></div>'
+        +'<button class="btn btn-p btn-full" onclick="doCheckin()">⏱ Fazer Check-in</button>';
+    }else if(!p.hora_saida){
+      ciHtml='<div class="ci-badge ci-in">🟢 CHECK-IN ATIVO</div>'
+        +'<div style="font-size:12px;color:var(--muted);margin-bottom:16px">Entrada: <strong style="color:var(--text)">'+p.hora_entrada+'</strong>'+(p.localidade?' · '+p.localidade:'')+'</div>'
+        +'<button class="btn btn-s btn-full" onclick="doCheckout(\''+p.id+'\')">⏹ Fazer Check-out</button>';
+    }else{
+      ciHtml='<div class="ci-badge ci-in">✅ DIA COMPLETO</div>'
+        +'<div style="font-size:12px;color:var(--muted)">'+p.hora_entrada+' → '+p.hora_saida+(p.localidade?' · '+p.localidade:'')+'</div>';
+    }
+    mc.innerHTML='<div class="sec-title">Presença</div><div class="sec-sub">Check-in diário</div>'
+      +'<div class="checkin-card"><div class="clock" id="clkEl">'+clk()+'</div>'
+      +'<div class="clock-date">'+new Date().toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</div>'
+      +ciHtml+'</div>'
+      +'<div class="card"><div class="card-title">📅 Histórico</div>'
+      +(hist.length?hist.map(function(h){return'<div class="row"><span class="row-l">'+fdate(h.data)+'</span><span style="font-size:11px">'+(h.hora_entrada||'—')+' → '+(h.hora_saida||'em curso')+' <span style="color:var(--muted)">'+(h.localidade||'')+'</span></span></div>';}).join(''):'<div class="empty-text" style="padding:10px 0">Sem registos</div>')
+      +'</div>';
+    if(CLK)clearInterval(CLK);
+    CLK=setInterval(function(){var el=document.getElementById('clkEl');if(el)el.textContent=clk();},1000);
+  }catch(e){mc.innerHTML='<div class="empty">'+e.message+'</div>';}
+};
+window.doCheckin=async function(){try{var loc=document.getElementById('loc').value;await api('digi_presenca','POST',{user_id:CU.id,data:today(),hora_entrada:nowt(),localidade:loc});toast('✅ Check-in feito!');pages.presenca();}catch(e){toast('Erro: '+e.message,true);}};
+window.doCheckout=async function(id){try{await api('digi_presenca?id=eq.'+id,'PATCH',{hora_saida:nowt()});toast('✅ Check-out feito!');pages.presenca();}catch(e){toast('Erro: '+e.message,true);}};
+
+// ═══════════════════════════════════════════
+// PORTA A PORTA
+// ═══════════════════════════════════════════
+pages.porta=async function(){
+  var mc=document.getElementById('MC');
+  var hist=await api('digi_relatorio_porta','GET',null,'?user_id=eq.'+CU.id+'&order=data.desc&limit=7');
+  mc.innerHTML='<div class="sec-title">Porta a Porta</div><div class="sec-sub">Relatório diário de campo</div>'
+    +'<div class="card"><div class="card-title">📋 Novo relatório — '+fdate(today())+'</div>'
+    +'<div class="fg"><label class="fl">Rua / Zona</label><input class="fi" id="p_rua" placeholder="Ex: Rua da Boavista, 100-200" style="margin-bottom:0"></div>'
+    +'<div class="frow"><div class="fg"><label class="fl">Nº Portas</label><input class="fi" id="p_por" type="number" min="0" value="0" style="margin-bottom:0"></div>'
+    +'<div class="fg"><label class="fl">Contactos</label><input class="fi" id="p_con" type="number" min="0" value="0" style="margin-bottom:0"></div></div>'
+    +'<div class="frow"><div class="fg"><label class="fl">Interessados</label><input class="fi" id="p_int" type="number" min="0" value="0" style="margin-bottom:0"></div>'
+    +'<div class="fg"><label class="fl">Marcações</label><input class="fi" id="p_mar" type="number" min="0" value="0" style="margin-bottom:0"></div></div>'
+    +'<div class="fg"><label class="fl">Observações</label><textarea class="fta" id="p_obs" placeholder="Notas do dia..."></textarea></div>'
+    +'<button class="btn btn-p btn-full" onclick="submitPorta()">📋 Guardar Relatório</button></div>'
+    +(hist.length?'<div class="card"><div class="card-title">📅 Histórico</div>'
+    +hist.map(function(h){return'<div class="row"><div><div style="font-size:12px;font-weight:700">'+fdate(h.data)+'</div><div style="font-size:10px;color:var(--muted)">'+(h.rua||'—')+'</div></div><div style="text-align:right;font-size:11px">'+h.numero_portas+' portas · <span style="color:var(--blue);font-weight:700">'+h.marcacoes+' marc.</span></div></div>';}).join('')+'</div>':'');
+};
+window.submitPorta=async function(){try{await api('digi_relatorio_porta','POST',{user_id:CU.id,data:today(),rua:document.getElementById('p_rua').value,numero_portas:parseInt(document.getElementById('p_por').value)||0,contactos:parseInt(document.getElementById('p_con').value)||0,interessados:parseInt(document.getElementById('p_int').value)||0,marcacoes:parseInt(document.getElementById('p_mar').value)||0,observacoes:document.getElementById('p_obs').value});toast('✅ Relatório guardado!');pages.porta();}catch(e){toast('Erro: '+e.message,true);}};
+
+// ═══════════════════════════════════════════
+// CHAMADAS
+// ═══════════════════════════════════════════
+pages.chamadas=async function(){
+  var mc=document.getElementById('MC');
+  var hist=await api('digi_relatorio_chamadas','GET',null,'?user_id=eq.'+CU.id+'&order=data.desc&limit=7');
+  mc.innerHTML='<div class="sec-title">Chamadas</div><div class="sec-sub">Relatório diário</div>'
+    +'<div class="card"><div class="card-title">📞 Novo relatório — '+fdate(today())+'</div>'
+    +'<div class="frow"><div class="fg"><label class="fl">Total Chamadas</label><input class="fi" id="c_tot" type="number" min="0" value="0" style="margin-bottom:0"></div>'
+    +'<div class="fg"><label class="fl">Atendidas</label><input class="fi" id="c_ate" type="number" min="0" value="0" style="margin-bottom:0"></div></div>'
+    +'<div class="frow"><div class="fg"><label class="fl">Interessados</label><input class="fi" id="c_int" type="number" min="0" value="0" style="margin-bottom:0"></div>'
+    +'<div class="fg"><label class="fl">Marcações</label><input class="fi" id="c_mar" type="number" min="0" value="0" style="margin-bottom:0"></div></div>'
+    +'<div class="fg"><label class="fl">Observações</label><textarea class="fta" id="c_obs" placeholder="Notas..."></textarea></div>'
+    +'<button class="btn btn-p btn-full" onclick="submitChams()">📞 Guardar Relatório</button></div>'
+    +(hist.length?'<div class="card"><div class="card-title">📅 Histórico</div>'
+    +hist.map(function(h){return'<div class="row"><span style="font-size:12px;font-weight:700">'+fdate(h.data)+'</span><span style="font-size:11px">'+h.total_chamadas+' calls · <span style="color:var(--blue);font-weight:700">'+h.marcacoes+' marc.</span></span></div>';}).join('')+'</div>':'');
+};
+window.submitChams=async function(){try{await api('digi_relatorio_chamadas','POST',{user_id:CU.id,data:today(),total_chamadas:parseInt(document.getElementById('c_tot').value)||0,atendidas:parseInt(document.getElementById('c_ate').value)||0,interessados:parseInt(document.getElementById('c_int').value)||0,marcacoes:parseInt(document.getElementById('c_mar').value)||0,observacoes:document.getElementById('c_obs').value});toast('✅ Relatório guardado!');pages.chamadas();}catch(e){toast('Erro: '+e.message,true);}};
+
+// ═══════════════════════════════════════════
+// AUTOS CONSULTOR
+// ═══════════════════════════════════════════
+pages.autos=async function(){
+  var mc=document.getElementById('MC');
+  try{
+    var autos=await api('digi_autos','GET',null,'?user_id=eq.'+CU.id+'&order=data_pedido.desc');
+    var val=autos.filter(function(a){return a.status==='Validado';});
+    var pat=getPat(val.length);
+    var real=val.reduce(function(s,a){return s+calcCom(a.qtd,pat);},0);
+    var sub=autos.filter(function(a){return a.status==='Cancelado'||a.status==='Incompleto';}).reduce(function(s,a){return s+calcCom(a.qtd,pat);},0);
+    var liq=real-sub;
+    var filtro='Todos';
+    function renderList(f){
+      filtro=f;
+      var lista=f==='Todos'?autos:autos.filter(function(a){return a.status===f;});
+      document.getElementById('autosTb').innerHTML=lista.length?lista.map(function(a){
+        return'<tr><td>'+fdate(a.data_pedido)+'</td>'
+          +'<td style="max-width:110px;overflow:hidden;text-overflow:ellipsis">'+(a.nome_cliente||'—')+'</td>'
+          +'<td style="color:var(--muted)">'+(a.ref_pedido||'—')+'</td>'
+          +'<td style="text-align:center">'+a.qtd+'</td>'
+          +'<td>'+badge(a.status)+'</td>'
+          +'<td style="color:var(--blue);font-weight:700">'+(a.status==='Validado'?calcCom(a.qtd,pat).toFixed(1)+'€':'—')+'</td>'
+          +'</tr>';
+      }).join(''):'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Sem autos</td></tr>';
+      document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('active',t.dataset.f===f);});
+    }
+    window._rA=renderList;
+    mc.innerHTML='<div class="sec-title">Os meus Autos</div>'
+      +'<div class="sec-sub">Patamar <strong style="color:var(--blue)">'+pat.label+'</strong> · Fibra '+pat.f+'€ · TV '+pat.tv+'€ · Móvel '+pat.m+'€</div>'
+      +'<div class="grid3">'
+        +'<div class="stat"><div class="stat-n">'+real.toFixed(0)+'€</div><div class="stat-l">💶 Real</div></div>'
+        +'<div class="stat"><div class="stat-n" style="color:var(--red)">'+sub.toFixed(0)+'€</div><div class="stat-l">➖ Subtrair</div></div>'
+        +'<div class="stat"><div class="stat-n" style="color:'+(liq>=0?'var(--blue)':'var(--red)')+'">'+liq.toFixed(0)+'€</div><div class="stat-l">💰 Líquido</div></div>'
+      +'</div>'
+      +'<div class="tabs">'
+        +['Todos','Validado','Novo','Incompleto','Cancelado'].map(function(f){return'<div class="tab'+(f==='Todos'?' active':'')+'" data-f="'+f+'" onclick="_rA(\''+f+'\')">'+f+'</div>';}).join('')
+      +'</div>'
+      +'<div class="tw"><table><thead><tr><th>Data</th><th>Cliente</th><th>Ref</th><th>Qtd</th><th>Status</th><th>Com.</th></tr></thead><tbody id="autosTb"></tbody></table></div>';
+    renderList('Todos');
+
+    // Setup PDF upload for contract
+    setTimeout(function(){
+      var fi=document.getElementById('cFile');
+      var dz=document.getElementById('cDropZ');
+      if(!fi||!dz)return;
+      dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('drag');});
+      dz.addEventListener('dragleave',function(){dz.classList.remove('drag');});
+      dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('drag');if(e.dataTransfer.files[0])processContractFile(e.dataTransfer.files[0]);});
+      fi.addEventListener('change',function(){if(fi.files[0])processContractFile(fi.files[0]);});
+    },100);
+
+  }catch(e){mc.innerHTML='<div class="empty">'+e.message+'</div>';}
+};
+
+// ═══════════════════════════════════════════
+// ADMIN DASHBOARD
+// ═══════════════════════════════════════════
+pages.aDash=async function(){
+  var mc=document.getElementById('MC');
+  try{
+    var users=await api('digi_users','GET',null,'?role=eq.consultor&ativo=eq.true');
+    var autos=await api('digi_autos','GET',null,'?order=data_pedido.desc');
+    var pres=await api('digi_presenca','GET',null,'?data=eq.'+today());
+    var ranking=users.map(function(u){
+      var ua=autos.filter(function(a){return a.user_id===u.id;});
+      var v=ua.filter(function(a){return a.status==='Validado';});
+      var pat=getPat(v.length);
+      var real=v.reduce(function(s,a){return s+calcCom(a.qtd,pat);},0);
+      var pr=pres.find(function(p){return p.user_id===u.id;});
+      return{id:u.id,nome:u.nome,nv:v.length,nt:ua.length,real:real,pat:pat,pr:pr};
+    }).sort(function(a,b){return b.nv-a.nv;});
+    var totReal=ranking.reduce(function(s,r){return s+r.real;},0);
+    var medals=['🥇','🥈','🥉'],mCls=['gold','silver','bronze'];
+    mc.innerHTML='<div class="sec-title">Dashboard</div>'
+      +'<div class="sec-sub">'+new Date().toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long'})+'</div>'
+      +'<div class="grid4">'
+        +'<div class="stat"><div class="stat-n">'+users.length+'</div><div class="stat-l">Equipa</div></div>'
+        +'<div class="stat"><div class="stat-n">'+pres.length+'</div><div class="stat-l">Presentes</div></div>'
+        +'<div class="stat"><div class="stat-n">'+autos.filter(function(a){return a.status==='Validado';}).length+'</div><div class="stat-l">Validados</div></div>'
+        +'<div class="stat"><div class="stat-n" style="color:var(--blue3);font-size:16px">'+totReal.toFixed(0)+'€</div><div class="stat-l">Comissões</div></div>'
+      +'</div>'
+      +'<div class="sec-row"><div class="sec-title" style="font-size:15px">🏆 Ranking</div>'
+      +'<button class="btn btn-s btn-sm" onclick="showCerts('+JSON.stringify(ranking.slice(0,3)).replace(/"/g,"'")+')" style="font-size:10px">🎖 Certificados</button></div>'
+      +ranking.map(function(r,i){
+        return'<div class="rank-item">'
+          +'<div class="rank-pos '+(mCls[i]||'')+'">'+(medals[i]||i+1)+'</div>'
+          +'<div style="flex:1"><div class="rank-name">'+r.nome+'</div>'
+          +'<div style="font-size:10px;color:var(--muted)">Pat. '+r.pat.label+' · '+(r.pr?'✅ Presente hoje':'⚪ Ausente')+'</div></div>'
+          +'<div style="text-align:right"><div style="color:var(--blue);font-weight:700;font-size:14px">'+r.nv+' val.</div>'
+          +'<div style="font-size:11px;color:var(--muted)">'+r.real.toFixed(0)+'€</div></div>'
+          +'</div>';
+      }).join('');
+  }catch(e){mc.innerHTML='<div class="empty">'+e.message+'</div>';}
+};
+
+// ═══════════════════════════════════════════
+// ADMIN AUTOS
+// ═══════════════════════════════════════════
+pages.aAutos=async function(){
+  var mc=document.getElementById('MC');
+  try{
+    var autos=await api('digi_autos','GET',null,'?order=data_pedido.desc');
+    var users=await api('digi_users','GET',null,'?ativo=eq.true');
+    var um={};users.forEach(function(u){um[u.id]=u.nome;});
+    window._auU=users;
+    mc.innerHTML='<div class="sec-row"><div><div class="sec-title">Autos</div><div class="sec-sub">'+autos.length+' registos</div></div>'
+      +'<button class="btn btn-p btn-sm" onclick="openAddAuto()">+ Novo</button></div>'
+      +'<div class="tw"><table><thead><tr><th>Data</th><th>Consultor</th><th>Cliente</th><th>Ref</th><th>Qtd</th><th>Status</th><th></th></tr></thead><tbody>'
+      +autos.map(function(a){
+        return'<tr><td>'+fdate(a.data_pedido)+'</td>'
+          +'<td style="color:var(--blue);font-size:10px">'+((um[a.user_id]||'—').split(' ')[0])+'</td>'
+          +'<td style="max-width:90px;overflow:hidden;text-overflow:ellipsis">'+(a.nome_cliente||'—')+'</td>'
+          +'<td style="color:var(--muted)">'+(a.ref_pedido||'—')+'</td>'
+          +'<td style="text-align:center">'+a.qtd+'</td>'
+          +'<td>'+badge(a.status)+'</td>'
+          +'<td><button class="btn btn-s btn-sm" onclick="openEditAuto(\''+a.id+'\',\''+a.status+'\')">✏️</button></td>'
+          +'</tr>';
+      }).join('')+'</tbody></table></div>';
+  }catch(e){mc.innerHTML='<div class="empty">'+e.message+'</div>';}
+};
+window.openAddAuto=function(){
+  var users=(window._auU||[]).filter(function(u){return u.role==='consultor';});
+  openModal('<button class="modal-x" onclick="closeModal()">×</button><div class="modal-title">➕ Novo Auto</div>'
+    +'<div class="fg"><label class="fl">Consultor</label><select class="fsel" id="m_uid">'+users.map(function(u){return'<option value="'+u.id+'">'+u.nome+'</option>';}).join('')+'</select></div>'
+    +'<div class="fg"><label class="fl">Ref. Pedido</label><input class="fi" id="m_ref" placeholder="33200000" style="margin-bottom:0"></div>'
+    +'<div class="fg"><label class="fl">Nome Cliente</label><input class="fi" id="m_nom" placeholder="Nome completo" style="margin-bottom:0"></div>'
+    +'<div class="frow"><div class="fg"><label class="fl">Qtd</label><input class="fi" id="m_qtd" type="number" min="1" max="10" value="2" style="margin-bottom:0"></div>'
+    +'<div class="fg"><label class="fl">Data</label><input class="fi" id="m_dat" type="date" value="'+today()+'" style="margin-bottom:0"></div></div>'
+    +'<div class="fg"><label class="fl">Status</label><select class="fsel" id="m_sta"><option>Novo</option><option>Validado</option><option>Incompleto</option><option>Cancelado</option></select></div>'
+    +'<button class="btn btn-p btn-full" onclick="submitNewAuto()">💾 Guardar</button>');
+};
+window.submitNewAuto=async function(){
+  try{
+    var uid=document.getElementById('m_uid').value;
+    var qtd=parseInt(document.getElementById('m_qtd').value)||1;
+    var va=await api('digi_autos','GET',null,'?user_id=eq.'+uid+'&status=eq.Validado');
+    var pat=getPat(va.length);
+    await api('digi_autos','POST',{user_id:uid,ref_pedido:document.getElementById('m_ref').value,nome_cliente:document.getElementById('m_nom').value,qtd:qtd,data_pedido:document.getElementById('m_dat').value,status:document.getElementById('m_sta').value,servicos:svcs(qtd),comissao_valor:calcCom(qtd,pat),patamar:pat.label});
+    closeModal();toast('✅ Auto adicionado!');pages.aAutos();
+  }catch(e){toast('Erro: '+e.message,true);}
+};
+window.openEditAuto=function(id,status){
+  openModal('<button class="modal-x" onclick="closeModal()">×</button><div class="modal-title">✏️ Editar Auto</div>'
+    +'<div class="fg"><label class="fl">Status</label><select class="fsel" id="e_sta">'+['Novo','Validado','Incompleto','Cancelado'].map(function(s){return'<option'+(s===status?' selected':'')+'>'+s+'</option>';}).join('')+'</select></div>'
+    +'<button class="btn btn-p btn-full" style="margin-bottom:10px" onclick="updateStatus(\''+id+'\')">💾 Atualizar</button><br>'
+    +'<button class="btn btn-d btn-full btn-sm" style="margin-top:8px" onclick="delAuto(\''+id+'\')">🗑 Eliminar</button>');
+};
+window.updateStatus=async function(id){try{await api('digi_autos?id=eq.'+id,'PATCH',{status:document.getElementById('e_sta').value});closeModal();toast('✅ Atualizado!');pages.aAutos();}catch(e){toast('Erro: '+e.message,true);}};
+window.delAuto=async function(id){if(!confirm('Eliminar?'))return;try{await api('digi_autos?id=eq.'+id,'DELETE');closeModal();toast('🗑 Eliminado!');pages.aAutos();}catch(e){toast('Erro: '+e.message,true);}};
+
+// ═══════════════════════════════════════════
+// EXTRATOR DE CONTRATOS DIGI (IA)
+// ═══════════════════════════════════════════
+pages.aContratos=function(){
+  CONTRACTS=[];
+  var mc=document.getElementById('MC');
+  mc.innerHTML='<div class="sec-title">Extrator de Contratos</div>'
+    +'<div class="sec-sub">Upload de PDFs/imagens de contratos DIGI — a IA extrai os dados automaticamente</div>'
+    +'<div class="upload-zone" id="dropZ">'
+      +'<input type="file" id="contractFile" accept=".pdf,image/*" multiple>'
+      +'<div class="upload-icon">📄</div>'
+      +'<h3>Arrasta contratos aqui</h3>'
+      +'<p>PDF de texto DIGI · vários ficheiros de uma vez</p>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;margin:12px 0" id="ctrlBtns" style="display:none">'
+      +'<button class="btn btn-p btn-sm" id="btnExtract" onclick="extractAll()" disabled>⚡ Extrair com IA</button>'
+      +'<button class="btn btn-s btn-sm" id="btnXls" onclick="exportContractsXls()" disabled>📥 Excel</button>'
+      +'<button class="btn btn-d btn-sm" onclick="clearContracts()">🗑 Limpar</button>'
+    +'</div>'
+    +'<div id="progressArea"></div>'
+    +'<div id="contractsList"></div>';
+
+  var dz=document.getElementById('dropZ');
+  var fi=document.getElementById('contractFile');
+  dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('drag');});
+  dz.addEventListener('dragleave',function(){dz.classList.remove('drag');});
+  dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('drag');addFiles([].slice.call(e.dataTransfer.files));});
+  fi.addEventListener('change',function(){addFiles([].slice.call(fi.files));});
+};
+
+function addFiles(files){
+  files.filter(function(f){return f.type==='application/pdf'||f.type.startsWith('image/');}).forEach(function(f){
+    if(CONTRACTS.find(function(c){return c.name===f.name&&c.size===f.size;}))return;
+    CONTRACTS.push({file:f,name:f.name,size:f.size,status:'pending',data:null});
+  });
+  renderContracts();
+  document.getElementById('btnExtract').disabled=CONTRACTS.length===0;
+}
+
+function renderContracts(){
+  var el=document.getElementById('contractsList');
+  if(!CONTRACTS.length){el.innerHTML='';return;}
+  el.innerHTML=CONTRACTS.map(function(c,i){
+    var statusColor={pending:'var(--muted)',extracting:'var(--yellow)',done:'var(--blue)',error:'var(--red)'}[c.status]||'var(--muted)';
+    var statusLabel={pending:'Aguarda',extracting:'A extrair...',done:'Extraído',error:'Erro'}[c.status]||'';
+    var dataHtml='';
+    if(c.status==='done'&&c.data){
+      var d=c.data;
+      dataHtml='<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px">'
+        +field('Nome',d.nome)+field('NIF',d.nif)+field('BI/CC',d.bi)
+        +field('Data Nasc.',d.data_nascimento)+field('Telefone',d.telefone)
+        +field('Morada',d.morada)+field('Serviços',d.servicos)
+        +field('Ref. Pedido',d.ref_pedido)+field('Data Contrato',d.data_contrato)
+        +'</div>';
+    }
+    if(c.status==='error'){dataHtml='<div style="color:var(--red);font-size:11px;margin-top:8px">'+c.error+'</div>';}
+    return'<div class="contract-card '+(c.status==='extracting'?'extracting':c.status==='done'?'done':c.status==='error'?'err':'')+'">'
+      +'<div style="display:flex;align-items:center;gap:10px">'
+        +'<span style="font-size:20px">'+(c.file.type==='application/pdf'?'📄':'🖼')+'</span>'
+        +'<span style="flex:1;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+c.name+'</span>'
+        +'<span style="font-size:10px;font-weight:700;color:'+statusColor+'">'+statusLabel+'</span>'
+        +(c.status==='pending'?'<button class="btn btn-d btn-sm" onclick="removeContract('+i+')" style="padding:3px 8px">×</button>':'')
+      +'</div>'
+      +dataHtml
+      +'</div>';
+  }).join('');
+}
+
+function field(label,val){
+  if(!val||val==='N/A'||val==='—')return'';
+  return'<div class="contract-field"><span class="cf-label">'+label+'</span><span class="cf-val">'+val+'</span></div>';
+}
+
+window.removeContract=function(i){CONTRACTS.splice(i,1);renderContracts();document.getElementById('btnExtract').disabled=CONTRACTS.length===0;};
+window.clearContracts=function(){CONTRACTS=[];renderContracts();document.getElementById('btnExtract').disabled=true;document.getElementById('btnXls').disabled=true;};
+
+window.extractAll=async function(){
+  var btn=document.getElementById('btnExtract');
+  btn.disabled=true;btn.textContent='A processar...';
+  var pending=CONTRACTS.filter(function(c){return c.status==='pending';});
+  var done=0;
+  var pa=document.getElementById('progressArea');
+  pa.innerHTML='<div class="progress-bar"><div class="progress-fill" id="pFill" style="width:0%"></div></div>';
+  for(var i=0;i<pending.length;i++){
+    var c=pending[i];
+    c.status='extracting';renderContracts();
+    try{
+      var b64=await toB64(c.file);
+      var mtype=c.file.type==='application/pdf'?'application/pdf':(c.file.type||'image/jpeg');
+      c.data=await extractContract(b64,mtype);
+      c.status='done';
+    }catch(e){c.status='error';c.error=e.message;}
+    done++;
+    var pf=document.getElementById('pFill');
+    if(pf)pf.style.width=(done/pending.length*100)+'%';
+    renderContracts();
+  }
+  btn.textContent='⚡ Extrair com IA';btn.disabled=false;
+  var hasDone=CONTRACTS.some(function(c){return c.status==='done';});
+  document.getElementById('btnXls').disabled=!hasDone;
+  toast('✅ Extração concluída! '+done+' ficheiros processados');
+};
+
+function toB64(file){
+  return new Promise(function(res,rej){
+    var r=new FileReader();
+    r.onload=function(){res(r.result.split(',')[1]);};
+    r.onerror=rej;
+    r.readAsDataURL(file);
+  });
+}
+
+async function extractContract(b64, mtype) {
+  var pdfData = atob(b64);
+  var uint8 = new Uint8Array(pdfData.length);
+  for (var i = 0; i < pdfData.length; i++) uint8[i] = pdfData.charCodeAt(i);
+  var loadTask = pdfjsLib.getDocument({data: uint8});
+  var pdf = await loadTask.promise;
+  var fullText = '';
+  for (var p = 1; p <= pdf.numPages; p++) {
+    var page = await pdf.getPage(p);
+    var tc = await page.getTextContent();
+    fullText += tc.items.map(function(i){return i.str;}).join(' ') + '\n';
+  }
+  var t = fullText;
+
+  // Helper: get value after a label, stops at next label or line end
+  function after(label, maxLen) {
+    maxLen = maxLen || 80;
+    var idx = t.indexOf(label);
+    if (idx === -1) return '';
+    var rest = t.substring(idx + label.length).trim();
+    // Remove leading * or : or spaces
+    rest = rest.replace(/^[\*:\s]+/, '');
+    // Take until next all-caps label or newline
+    var val = rest.substring(0, maxLen);
+    // Cut at known separators
+    var cuts = ['NIF', 'Doc.', 'Morada', 'Distrito', 'Localidade', 'Data de', 'Tel.', 'E-mail', 'Tipo de', 'Declaro', 'AUTORIZA', 'Produto', 'Período', 'Nome do', '\n'];
+    cuts.forEach(function(c) {
+      var ci = val.indexOf(c);
+      if (ci > 2) val = val.substring(0, ci);
+    });
+    return val.trim();
+  }
+
+  // Nome do cliente - between "denominação social*" and "Nacionalidade"
+  var nome = after('denominação social*', 60);
+  if (!nome) nome = after('Nome completo ou denominação social', 60);
+
+  // NIF do cliente - "NIF*" followed by 9 digits (ignore NIPC 516222201 da DIGI)
+  var nifMatch = t.match(/NIF\*\s*([0-9]{9})\b/);
+  var nif = nifMatch ? nifMatch[1] : '';
+  // Make sure it's not DIGI's NIF
+  if (nif === '516222201') {
+    var nifAll = t.match(/NIF\*\s*([0-9]{9})\b/g) || [];
+    nif = '';
+    nifAll.forEach(function(m) {
+      var n = m.match(/([0-9]{9})/)[1];
+      if (n !== '516222201') nif = n;
+    });
+  }
+
+  // BI / CC number - after "Nº*"
+  var biMatch = t.match(/N[º\u00ba]\*\s*([0-9]{7,12})\b/);
+  var bi = biMatch ? biMatch[1] : '';
+
+  // Data nascimento - after "Data de nascimento*"
+  var dnMatch = t.match(/Data de nascimento\*\s*([0-9]{2}[-\/][0-9]{2}[-\/][0-9]{4})/i);
+  var dn = dnMatch ? dnMatch[1] : '';
+
+  // Telefone - after "Tel. de contacto*"
+  var telMatch = t.match(/Tel\. de contacto\*\s*([0-9]{9})/i);
+  var tel = telMatch ? telMatch[1] : '';
+
+  // Email - after "E-mail*"
+  var emailMatch = t.match(/E-mail\*\s*([A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,})/i);
+  var email = emailMatch ? emailMatch[1] : '';
+
+  // Morada - after "Morada de Instação*" (note: DIGI has typo "Instação")
+  var moradaRua = after('Morada de Insta', 80);
+  var distrito = after('Distrito*', 30);
+  var localidade = after('Localidade*', 30);
+  var cp = t.match(/C[oó]digo Postal\*\s*([0-9]{4}-[0-9]{3})/i);
+  var morada = moradaRua;
+  if (localidade) morada += ', ' + localidade;
+  if (cp) morada += ' ' + cp[1];
+
+  // Serviços contratados - find all "Produto X" lines
+  var prodMatches = t.match(/Produto\s+([A-Za-zÀ-ú0-9 ]{3,40}?)(?:\s+Per[ií]odo|\s+Alter)/g) || [];
+  var prods = prodMatches.map(function(m) {
+    return m.replace(/Produto\s+/, '').replace(/\s+Per[ií]odo.*/, '').replace(/\s+Alter.*/, '').trim();
+  }).filter(function(p) { return p.length > 1; });
+  // Also check "Nome do serviço" line on page 2
+  var nomeServMatch = t.match(/Nome do servi[çc]o\s+([^\n]{5,60})/i);
+  var servicos = prods.length ? prods.join(' + ') : (nomeServMatch ? nomeServMatch[1].trim() : '');
+
+  // Ref pedido - "Número" + "Data" header area (first page, contract number)
+  var refMatch = t.match(/\b(329[0-9]{6,9})\b/);
+  var ref = refMatch ? refMatch[1] : '';
+
+  // Data contrato - after "Data" near the top, format DD/MM/YYYY or DD-MM-YYYY
+  var dcMatch = t.match(/\b([0-9]{2}[\/\-][0-9]{2}[\/\-][0-9]{4})\b/);
+  var dc = dcMatch ? dcMatch[1] : '';
+
+  // Total mensal
+  var totalMatch = t.match(/Total[:\s]*([0-9]+,[0-9]+\s*€|[0-9]+\s*€)/i);
+  var total = totalMatch ? totalMatch[1] : '';
+
+  return {
+    nome: nome,
+    nif: nif,
+    bi: bi,
+    data_nascimento: dn,
+    telefone: tel,
+    email: email,
+    morada: morada,
+    servicos: servicos,
+    ref_pedido: ref,
+    data_contrato: dc,
+    total_mensal: total
+  };
+}
+
+window.processContractFile=async function(file){
+  var st=document.getElementById('cStatus');
+  if(!st)return;
+  st.innerHTML='<div style="color:var(--yellow);font-size:12px;padding:8px 0"><span class="spin"></span> A ler contrato...</div>';
+
+  try{
+    // Read PDF
+    var b64=await toB64(file);
+    var pdfData=atob(b64);
+    var uint8=new Uint8Array(pdfData.length);
+    for(var i=0;i<pdfData.length;i++)uint8[i]=pdfData.charCodeAt(i);
+    var pdf=await pdfjsLib.getDocument({data:uint8}).promise;
+    var fullText='';
+    for(var p=1;p<=pdf.numPages;p++){
+      var page=await pdf.getPage(p);
+      var tc=await page.getTextContent();
+      fullText+=tc.items.map(function(i){return i.str;}).join(' ')+'\n';
+    }
+    var t=fullText;
+
+    // Extract with DIGI-specific patterns
+    function after(label,maxLen){
+      maxLen=maxLen||80;
+      var idx=t.indexOf(label);
+      if(idx===-1)return'';
+      var rest=t.substring(idx+label.length).trim().replace(/^[\*:\s]+/,'');
+      var val=rest.substring(0,maxLen);
+      ['NIF','Doc.','Morada','Distrito','Localidade','Data de','Tel.','E-mail','Tipo de','Declaro','AUTORIZA','Produto','Nome do'].forEach(function(c){var ci=val.indexOf(c);if(ci>2)val=val.substring(0,ci);});
+      return val.trim();
+    }
+
+    var nome=after('denominação social*',60)||after('Nome completo ou denominação social',60);
+    var nifMatch=t.match(/NIF\*\s*([0-9]{9})/g)||[];
+    var nif='';
+    nifMatch.forEach(function(m){var n=m.match(/([0-9]{9})/)[1];if(n!=='516222201')nif=n;});
+    var biMatch=t.match(/N[ºº]\*\s*([0-9]{7,12})/);
+    var bi=biMatch?biMatch[1]:'';
+    var dnMatch=t.match(/Data de nascimento\*\s*([0-9]{2}[-\/][0-9]{2}[-\/][0-9]{4})/i);
+    var dn=dnMatch?dnMatch[1]:'';
+    var telMatch=t.match(/Tel\. de contacto\*\s*([0-9]{9})/i);
+    var tel=telMatch?telMatch[1]:'';
+    var emailMatch=t.match(/E-mail\*\s*([A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,})/i);
+    var email=emailMatch?emailMatch[1]:'';
+    var moradaRua=after('Morada de Insta',80);
+    var localidade=after('Localidade*',30);
+    var cp=t.match(/C[oó]digo Postal\*\s*([0-9]{4}-[0-9]{3})/i);
+    var morada=moradaRua+(localidade?', '+localidade:'')+(cp?' '+cp[1]:'');
+    var prodMatches=t.match(/Produto\s+([A-Za-zÀ-ú0-9 ]{3,40}?)(?:\s+Per[ií]odo|\s+Alter)/g)||[];
+    var prods=prodMatches.map(function(m){return m.replace(/Produto\s+/,'').replace(/\s+Per[ií]odo.*/,'').replace(/\s+Alter.*/,'').trim();}).filter(function(p){return p.length>1;});
+    var nomeServMatch=t.match(/Nome do servi.o\s+(.{5,60})/i);
+    var servicos=prods.length?prods.join(' + '):(nomeServMatch?nomeServMatch[1].trim():'');
+    var refMatch=t.match(/(329[0-9]{5,9})/);
+    var ref=refMatch?refMatch[1]:'';
+    var dcMatch=t.match(/([0-9]{2}[\/\-][0-9]{2}[\/\-][0-9]{4})/);
+    var dc=dcMatch?dcMatch[1]:'';
+    var totalMatch=t.match(/Total[:\s]*([0-9]+[,\.][0-9]+\s*€|[0-9]+\s*€)/i);
+    var total=totalMatch?totalMatch[1]:'';
+
+    // Count qty from services
+    var qtd=1;
+    if(/tv|televis/i.test(servicos))qtd++;
+    var moveis=prods.filter(function(p){return /m[oó]vel/i.test(p);}).length;
+    if(moveis>0)qtd+=moveis;
+
+    // Store data globally for submit
+    window._contractData={nome:nome,nif:nif,bi:bi,dn:dn,tel:tel,email:email,morada:morada,servicos:servicos,ref:ref,dc:dc,total:total,qtd:qtd};
+
+    // Show preview
+    st.innerHTML='<div style="background:var(--bg);border:1px solid var(--blue-light);border-radius:10px;padding:14px;margin-bottom:10px">'
+      +'<div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:10px">✅ Dados extraídos — confirma antes de submeter:</div>'
+      +'<div style="font-size:11px;display:grid;grid-template-columns:1fr 1fr;gap:6px">'
+      +'<div><span style="color:var(--muted)">Nome: </span><strong>'+nome+'</strong></div>'
+      +'<div><span style="color:var(--muted)">NIF: </span><strong>'+nif+'</strong></div>'
+      +'<div><span style="color:var(--muted)">CC: </span><strong>'+bi+'</strong></div>'
+      +'<div><span style="color:var(--muted)">Nasc.: </span><strong>'+dn+'</strong></div>'
+      +'<div><span style="color:var(--muted)">Tel.: </span><strong>'+tel+'</strong></div>'
+      +'<div><span style="color:var(--muted)">Email: </span><strong style="font-size:10px">'+email+'</strong></div>'
+      +'<div style="grid-column:1/-1"><span style="color:var(--muted)">Morada: </span><strong>'+morada+'</strong></div>'
+      +'<div style="grid-column:1/-1"><span style="color:var(--muted)">Serviços: </span><strong style="color:var(--blue)">'+servicos+'</strong></div>'
+      +'<div><span style="color:var(--muted)">Ref.: </span><strong>'+ref+'</strong></div>'
+      +'<div><span style="color:var(--muted)">Data: </span><strong>'+dc+'</strong></div>'
+      +'<div><span style="color:var(--muted)">Total: </span><strong style="color:var(--blue)">'+total+'</strong></div>'
+      +'<div><span style="color:var(--muted)">Qtd: </span><strong>'+qtd+'</strong></div>'
+      +'</div></div>'
+      +'<button class="btn btn-p btn-full" onclick="submitContrato()">📤 Submeter como Novo</button>'
+      +'<button class="btn btn-d btn-full" style="margin-top:8px" onclick="cancelContrato()">✕ Cancelar</button>';
+
+  }catch(e){
+    st.innerHTML='<div style="color:var(--red);font-size:12px;padding:8px">Erro: '+e.message+'</div>';
+  }
+};
+
+window.submitContrato=async function(){
+  var d=window._contractData||{};
+  var nome=d.nome||'',nif=d.nif||'',ref=d.ref||'',dc=d.dc||'',qtd=d.qtd||1,svcs=d.servicos||'',tel=d.tel||'',morada=d.morada||'';
+  var st=document.getElementById('cStatus');
+  st.innerHTML='<div style="color:var(--yellow);font-size:12px;padding:8px"><span class="spin"></span> A submeter...</div>';
+  try{
+    // Check if NIF already exists for this user
+    var existing=await api('digi_autos','GET',null,'?user_id=eq.'+CU.id+'&ref_pedido=eq.'+ref);
+    if(existing.length){
+      st.innerHTML='<div style="color:var(--yellow);font-size:12px;padding:8px">⚠️ Este contrato (ref. '+ref+') já foi submetido.</div>';
+      return;
+    }
+    var va=await api('digi_autos','GET',null,'?user_id=eq.'+CU.id+'&status=eq.Validado');
+    var pat=getPat(va.length);
+    await api('digi_autos','POST',{
+      user_id:CU.id,
+      ref_pedido:ref,
+      nome_cliente:nome,
+      qtd:qtd,
+      data_pedido:dc?dc.split('/').reverse().join('-'):today(),
+      status:'Novo',
+      servicos:svcs,
+      comissao_valor:calcCom(qtd,pat),
+      patamar:pat.label
+    });
+    toast('✅ Contrato submetido! Aguarda validação do admin.');
+    st.innerHTML='';
+    document.getElementById('cFile').value='';
+    pages.autos();
+  }catch(e){
+    st.innerHTML='<div style="color:var(--red);font-size:12px;padding:8px">Erro: '+e.message+'</div>';
+  }
+};
+
+
+window.cancelContrato=function(){
+  var s=document.getElementById('cStatus');if(s)s.innerHTML='';
+  var f=document.getElementById('cFile');if(f)f.value='';
+  window._contractData=null;
+};
+window.exportContractsXls=function(){
+  var done=CONTRACTS.filter(function(c){return c.status==='done'&&c.data;});
+  if(!done.length){toast('Sem dados para exportar',true);return;}
+  var wb=XLSX.utils.book_new();
+  var rows=[['Nome','NIF','BI/CC','Data Nasc.','Telefone','Email','Morada','Serviços','Ref. Pedido','Data Contrato','Total Mensal','Ficheiro']];
+  done.forEach(function(c){
+    var d=c.data;
+    rows.push([d.nome,d.nif,d.bi,d.data_nascimento,d.telefone,d.email,d.morada,d.servicos,d.ref_pedido,d.data_contrato,d.total_mensal||'',c.name]);
+  });
+  var ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:28},{wch:12},{wch:14},{wch:13},{wch:14},{wch:24},{wch:36},{wch:24},{wch:14},{wch:14},{wch:12},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,ws,'Contratos DIGI');
+  var date=today();
+  XLSX.writeFile(wb,'Contratos_DIGI_'+date+'.xlsx');
+  toast('✅ Excel exportado!');
+};
+
+// ═══════════════════════════════════════════
+// ADMIN RELATÓRIOS
+// ═══════════════════════════════════════════
+pages.aRels=async function(){
+  var mc=document.getElementById('MC');
+  try{
+    var porta=await api('digi_relatorio_porta','GET',null,'?order=data.desc&limit=30');
+    var chams=await api('digi_relatorio_chamadas','GET',null,'?order=data.desc&limit=30');
+    var users=await api('digi_users','GET',null,'?ativo=eq.true');
+    var um={};users.forEach(function(u){um[u.id]=u.nome;});
+    var tab='porta';
+    function renderTab(){
+      var lista=tab==='porta'?porta:chams;
+      document.getElementById('relBody').innerHTML=lista.length?lista.map(function(r){
+        var cols=tab==='porta'
+          ?'<td style="max-width:100px;overflow:hidden;text-overflow:ellipsis">'+(r.rua||'—')+'</td><td>'+r.numero_portas+'</td><td>'+r.contactos+'</td><td style="color:var(--blue);font-weight:700">'+r.marcacoes+'</td>'
+          :'<td>'+r.total_chamadas+'</td><td>'+r.atendidas+'</td><td>'+r.interessados+'</td><td style="color:var(--blue);font-weight:700">'+r.marcacoes+'</td>';
+        return'<tr><td>'+fdate(r.data)+'</td><td style="color:var(--blue);font-size:10px">'+((um[r.user_id]||'—').split(' ')[0])+'</td>'+cols+'</tr>';
+      }).join(''):'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Sem dados</td></tr>';
+      document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('active',t.dataset.t===tab);});
+    }
+    window._rT=function(t){tab=t;renderTab();};
+    mc.innerHTML='<div class="sec-title">Relatórios</div>'
+      +'<div class="tabs">'
+        +'<div class="tab active" data-t="porta" onclick="_rT(\'porta\')">🚪 Porta a Porta</div>'
+        +'<div class="tab" data-t="chams" onclick="_rT(\'chams\')">📞 Chamadas</div>'
+      +'</div>'
+      +'<div class="tw"><table><thead><tr><th>Data</th><th>Consultor</th><th>'+(tab==='porta'?'Rua</th><th>Portas</th><th>Cont.</th><th>Marc.':'Total</th><th>Atend.</th><th>Inter.</th><th>Marc.')+'</th></tr></thead><tbody id="relBody"></tbody></table></div>';
+    renderTab();
+  }catch(e){mc.innerHTML='<div class="empty">'+e.message+'</div>';}
+};
+
+// ═══════════════════════════════════════════
+// ADMIN USERS
+// ═══════════════════════════════════════════
+pages.aUsers=async function(){
+  var mc=document.getElementById('MC');
+  try{
+    var users=await api('digi_users','GET',null,'?order=created_at.asc');
+    mc.innerHTML='<div class="sec-row"><div><div class="sec-title">Equipa</div>'
+      +'<div class="sec-sub">'+users.filter(function(u){return u.role==='consultor';}).length+' consultores activos</div></div>'
+      +'<button class="btn btn-p btn-sm" onclick="openNewUser()">+ Novo</button></div>'
+      +users.filter(function(u){return u.role==='consultor';}).map(function(u){
+        return'<div class="u-item">'
+          +'<div class="u-av">'+u.nome[0]+'</div>'
+          +'<div style="flex:1"><div style="font-size:13px;font-weight:700">'+u.nome+'</div>'
+          +'<div style="font-size:10px;color:var(--muted)">'+u.email+'</div></div>'
+          +'<span class="bv '+(u.ativo?'bv-v':'bv-c')+'" style="margin-right:8px">'+(u.ativo?'Ativo':'Inativo')+'</span>'
+          +'<button class="btn btn-s btn-sm" onclick="toggleUser(\''+u.id+'\','+u.ativo+')">⚙️</button>'
+          +'</div>';
+      }).join('');
+  }catch(e){mc.innerHTML='<div class="empty">'+e.message+'</div>';}
+};
+window.openNewUser=function(){
+  openModal('<button class="modal-x" onclick="closeModal()">×</button><div class="modal-title">➕ Novo Consultor</div>'
+    +'<div class="fg"><label class="fl">Nome completo</label><input class="fi" id="u_nom" placeholder="João Silva" style="margin-bottom:0"></div>'
+    +'<div class="fg"><label class="fl">Email</label><input class="fi" id="u_eml" type="email" placeholder="joao@digi.pt" style="margin-bottom:0"></div>'
+    +'<div class="fg"><label class="fl">Password</label><input class="fi" id="u_pas" placeholder="password inicial" style="margin-bottom:0"></div>'
+    +'<button class="btn btn-p btn-full" onclick="submitNewUser()">💾 Criar Consultor</button>');
+};
+window.submitNewUser=async function(){try{await api('digi_users','POST',{nome:document.getElementById('u_nom').value,email:document.getElementById('u_eml').value.toLowerCase(),password_hash:document.getElementById('u_pas').value,role:'consultor',ativo:true});closeModal();toast('✅ Consultor criado!');pages.aUsers();}catch(e){toast('Erro: '+e.message,true);}};
+window.toggleUser=async function(id,cur){try{await api('digi_users?id=eq.'+id,'PATCH',{ativo:!cur});toast(cur?'⚪ Desativado':'✅ Ativado');pages.aUsers();}catch(e){toast('Erro: '+e.message,true);}};
+
+// ═══════════════════════════════════════════
+// CERTIFICADOS PDF
+// ═══════════════════════════════════════════
+window.showCerts=function(top3){
+  var mes=new Date().toLocaleDateString('pt-PT',{month:'long',year:'numeric'});
+  var medals=['🥇','🥈','🥉'],titles=['1º Melhor Consultor','2º Melhor Consultor','3º Melhor Consultor'];
+  openModal('<button class="modal-x" onclick="closeModal()">×</button><div class="modal-title">🎖 Certificados — '+mes+'</div>'
+    +top3.map(function(r,i){
+      return'<div style="background:linear-gradient(135deg,var(--bg),#091409);border:1px solid var(--blue);border-radius:14px;padding:20px;text-align:center;margin-bottom:12px">'
+        +'<div style="font-size:40px;margin-bottom:6px">'+medals[i]+'</div>'
+        +'<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;color:var(--blue)">'+titles[i]+'</div>'
+        +'<div style="font-size:10px;color:var(--muted);margin-bottom:10px">DIGI Portugal · '+mes+'</div>'
+        +'<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;margin-bottom:4px">'+r.nome+'</div>'
+        +'<div style="font-size:11px;color:var(--blue)">'+r.nv+' validados · '+r.real.toFixed(0)+'€</div>'
+        +'</div>'
+        +'<button class="btn btn-s btn-full" style="margin-bottom:12px" onclick="gerarPDF(\''+r.nome.replace(/'/g,'')+'\',' +r.nv+','+r.real.toFixed(0)+','+i+')">⬇️ Descarregar PDF '+titles[i]+'</button>';
+    }).join(''));
+};
+window.gerarPDF=function(nome,nv,real,pos){
+  try{
+    var jsPDF=window.jspdf.jsPDF;
+    var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a5'});
+    var mes=new Date().toLocaleDateString('pt-PT',{month:'long',year:'numeric'});
+    var medals=['1º LUGAR','2º LUGAR','3º LUGAR'];
+    var emojis=['🥇','🥈','🥉'];
+    doc.setFillColor(7,7,11);doc.rect(0,0,210,148,'F');
+    doc.setDrawColor(160,255,184);doc.setLineWidth(1.5);doc.rect(5,5,200,138);
+    doc.setLineWidth(.3);doc.rect(8,8,194,132);
+    doc.setFillColor(10,10,18);doc.rect(5,5,200,32,'F');
+    doc.setTextColor(160,255,184);doc.setFontSize(22);doc.setFont('helvetica','bold');
+    doc.text('DIGI ELITE HUB', 105,20,{align:'center'});
+    doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(90,90,122);
+    doc.text('CERTIFICADO DE RECONHECIMENTO DE EXCELÊNCIA',105,29,{align:'center'});
+    doc.setFontSize(11);doc.setTextColor(160,255,184);doc.setFont('helvetica','bold');
+    doc.text(medals[pos],105,52,{align:'center'});
+    doc.setFontSize(19);doc.setTextColor(232,232,240);
+    doc.text(nome.toUpperCase(),105,74,{align:'center'});
+    doc.setFontSize(10);doc.setTextColor(160,255,184);doc.setFont('helvetica','normal');
+    doc.text(nv+' contratos validados  ·  '+real+'€ em comissões geradas',105,86,{align:'center'});
+    doc.setFontSize(9);doc.setTextColor(90,90,122);
+    doc.text(mes.toUpperCase(),105,96,{align:'center'});
+    doc.setDrawColor(160,255,184);doc.setLineWidth(.4);doc.line(40,104,170,104);
+    doc.setFontSize(7);
+    doc.text('DIGI Portugal  ·  REBORN AI  ·  DIGI Elite Hub Platform  ·  digibeta-sigma.vercel.app',105,112,{align:'center'});
+    doc.save('Cert_'+(pos+1)+'_'+nome.replace(/ /g,'_')+'.pdf');
+    toast('✅ PDF gerado!');
+  }catch(e){toast('Erro PDF: '+e.message,true);}
+};
+
+
+// ══════════════════════════════════════════
+// ELITE TRAINER
+// ══════════════════════════════════════════
+const CLIENTS=[
+  {id:'desconfiado',name:'Sr. António Ferreira',type:'Desconfiado',operator:'MEO',bill:72,icon:'🧔',hint:'Usa dados técnicos. Posiciona-te como técnico.',sp:'És o Sr. António Ferreira, 58 anos, cliente MEO há 12 anos, desconfiado de vendedores. Pagas 72€/mês. Começas reservado. Só abres quando o consultor usa factos concretos e menciona nPerf. NUNCA aceitas imediatamente. Respostas curtas no início. Português de Portugal.'},
+  {id:'apressado',name:'Dra. Sofia Martins',type:'Apressado',operator:'NOS',bill:65,icon:'👩‍💼',hint:'Ultra-direto. Mostra o preço em 2 minutos.',sp:'És a Dra. Sofia Martins, 34 anos, advogada, cliente NOS, pagas 65€/mês. Sempre com pressa. Se consultor for lento dizes OK obrigada e fechas. Se for direto e mostrar preço em 2 min, ouves. Muito breve. Português de Portugal.'},
+  {id:'racional',name:'Eng. Manuel Costa',type:'Racional',operator:'Vodafone',bill:80,icon:'👨‍💻',hint:'Mostra ROI claro. Adora números.',sp:'És o Eng. Manuel Costa, 46 anos, engenheiro, cliente Vodafone, pagas 80€/mês. Analítico. Só te convences com números: poupança anual, ROI, preços congelados. Português de Portugal.'},
+  {id:'indeciso',name:'Sra. Lurdes Pereira',type:'Indeciso',operator:'MEO',bill:58,icon:'👵',hint:'Simplifica. Duas opções. Baixo risco.',sp:'És a Sra. Lurdes Pereira, 62 anos, reformada, cliente MEO, pagas 58€/mês. Tens medo de mudar. Dizes Não sei e Tenho que falar com o meu filho. Consultor deve simplificar e dar 2 opções claras. Português de Portugal.'},
+];
+const PHASES=['Abordagem','Diagnóstico','Proposta','Objeções','Fecho'];
+let simState={client:null,score:0,turns:0,phase:0,metrics:{abertura:0,diagnostico:0,objections:0,fecho:0},isThinking:false,history:[]};
+
+// ── SIM ──
+function renderTSim(){
+  const el=document.getElementById('tContent');if(!el)return;
+  el.innerHTML='<div style="background:var(--white);border-radius:16px;padding:18px;box-shadow:0 2px 16px rgba(0,0,0,.08)"><div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px">Escolhe o Perfil</div>'
+  +CLIENTS.map(c=>`<div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:12px;border:1.5px solid var(--border);transition:border .15s" onclick="startSim('${c.id}')" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
+    <div style="font-size:28px">${c.icon}</div>
+    <div style="flex:1"><div style="font-size:14px;font-weight:700">${c.name}</div>
+    <div style="font-size:12px;color:var(--muted)">${c.operator} · ${c.bill}€/mês · ${c.type}</div>
+    <div style="font-size:11px;color:var(--blue);margin-top:2px">💡 ${c.hint}</div></div>
+    <div style="color:var(--blue);font-size:20px">›</div></div>`).join('')+'</div>';
+}
+
+window.startSim=(id)=>{
+  const client=CLIENTS.find(c=>c.id===id);
+  simState={client,score:0,turns:0,phase:0,metrics:{abertura:0,diagnostico:0,objections:0,fecho:0},isThinking:false,history:[]};
+  // Build chat UI
+  const mc=document.getElementById('MC');
+  mc.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="font-size:18px;font-weight:800">${client.icon} ${client.name}</div>
+        <div style="font-size:12px;color:var(--muted)">${client.operator} · ${client.bill}€/mês · <span id="st-phase" style="color:var(--blue);font-weight:700">Abordagem</span></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="font-size:16px;font-weight:800;color:var(--blue)" id="st-score">0 pts</div>
+        <button class="btn btn-sm" style="background:rgba(255,59,48,.1);color:var(--red);border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer" onclick="endSim()">Terminar</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 90px;gap:10px;margin-bottom:12px">
+      <div style="background:var(--white);border-radius:12px;height:340px;display:flex;flex-direction:column;box-shadow:0 2px 16px rgba(0,0,0,.08)">
+        <div style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px" id="chatMessages"></div>
+        <div style="border-top:1px solid var(--border);padding:10px">
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px" id="quickReplies"></div>
+          <div style="display:flex;gap:8px">
+            <textarea style="flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:22px;padding:9px 14px;font-size:12px;color:var(--text);outline:none;resize:none;height:40px;font-family:Inter,sans-serif" id="chatInput" placeholder="O que dizes ao cliente?" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"></textarea>
+            <button style="width:40px;height:40px;border-radius:50%;background:var(--blue);border:none;color:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center" id="sendBtn" onclick="sendMsg()">➤</button>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="background:var(--white);border-radius:10px;padding:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);font-size:10px">
+          <div style="font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Funil</div>
+          <div id="funnelSteps"></div>
+        </div>
+        <div style="background:var(--white);border-radius:10px;padding:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);font-size:10px">
+          <div style="font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Score</div>
+          <div id="scoreMetrics"></div>
+        </div>
+      </div>
+    </div>`;
+  buildFunnel();renderMetrics();
+  addSysMsg(`🏠 <strong>${client.name}</strong> · ${client.operator} · ${client.bill}€/mês<br><br>💡 <em>${client.hint}</em>`);
+  setQR(['Bom dia, sou da DIGI. Posso mostrar-lhe quanto poupa em 2 minutos?','Olá! Estamos aqui na zona. Tem 2 minutos?','Boa tarde! Consultor DIGI — poupa '+(client.bill-30)+'€/mês.']);
+};
+
+function buildFunnel(){
+  const el=document.getElementById('funnelSteps');if(!el)return;
+  el.innerHTML=PHASES.map((p,i)=>`<div style="display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;font-size:10px;${i===0?'background:var(--blue-ultra);color:var(--blue);font-weight:700':'color:var(--muted2)'};margin-bottom:3px;transition:all .3s" id="fs-${i}">
+    <div style="width:5px;height:5px;border-radius:50%;background:${i===0?'var(--blue)':'var(--border)'};flex-shrink:0"></div>${p}</div>`).join('');
+}
+function updateFunnel(ph){
+  PHASES.forEach((_,i)=>{
+    const el=document.getElementById('fs-'+i);if(!el)return;
+    if(i<ph){el.style.cssText='display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;font-size:10px;color:var(--green);margin-bottom:3px';el.children[0].style.background='var(--green)';}
+    else if(i===ph){el.style.cssText='display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;font-size:10px;background:var(--blue-ultra);color:var(--blue);font-weight:700;margin-bottom:3px';el.children[0].style.background='var(--blue)';}
+    else{el.style.cssText='display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;font-size:10px;color:var(--muted2);margin-bottom:3px';el.children[0].style.background='var(--border)';}
+  });
+  simState.phase=ph;
+  const ph_el=document.getElementById('st-phase');if(ph_el)ph_el.textContent=PHASES[ph]||'✓';
+}
+function renderMetrics(){
+  const m=simState.metrics;
+  const el=document.getElementById('scoreMetrics');if(!el)return;
+  el.innerHTML=['Abertura:'+m.abertura,'Diag.:'+m.diagnostico,'Obj.:'+m.objections,'Fecho:'+m.fecho].map(x=>{
+    const[l,v]=x.split(':');
+    return`<div style="margin-bottom:5px"><div style="display:flex;justify-content:space-between;font-size:9px"><span>${l}</span><span style="color:var(--blue);font-weight:700">${v}</span></div>
+    <div style="background:var(--border);border-radius:3px;height:3px;margin-top:2px"><div style="height:100%;background:var(--blue);border-radius:3px;width:${(v/25)*100}%"></div></div></div>`;
+  }).join('');
+}
+function addMsg(role,text,fb,sd){
+  const msgs=document.getElementById('chatMessages');if(!msgs)return;
+  const c=simState.client;
+  const av=role==='user'?'🧑':role==='sys'?'💡':c.icon;
+  let fbH='';if(fb)fbH=`<div style="margin-top:6px;padding:7px 9px;background:var(--blue-ultra);border-radius:7px;border-left:3px solid var(--blue);font-size:10px;color:var(--text2);line-height:1.5">${fb}${sd>0?`<span style="display:inline-flex;background:var(--blue);color:#fff;font-size:9px;font-weight:700;padding:1px 7px;border-radius:20px;margin-left:5px">+${sd}</span>`:''}</div>`;
+  const d=document.createElement('div');
+  d.style.cssText='display:flex;gap:8px;max-width:85%;'+(role==='user'?'align-self:flex-end;flex-direction:row-reverse':'');
+  d.innerHTML=`<div style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;background:${role==='user'?'var(--blue)':'var(--bg)'};border:1.5px solid ${role==='user'?'var(--blue)':'var(--border)'}${role==='user'?';color:#fff':''}">${role==='user'?'U':av}</div>
+  <div style="background:${role==='user'?'var(--blue)':'var(--white)'};border:1px solid ${role==='user'?'var(--blue)':'var(--border)'};border-radius:${role==='user'?'14px 14px 3px 14px':'14px'};padding:9px 12px;font-size:12px;line-height:1.6;color:${role==='user'?'#fff':'var(--text)'}${role==='sys'?';background:var(--blue-ultra);border-color:var(--blue-light);color:var(--blue2)':''}">${text}${fbH}</div>`;
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+}
+function addSysMsg(html){
+  const msgs=document.getElementById('chatMessages');if(!msgs)return;
+  const d=document.createElement('div');d.style.cssText='max-width:100%';
+  d.innerHTML=`<div style="background:var(--blue-ultra);border:1px solid var(--blue-light);border-radius:12px;padding:10px 12px;font-size:12px;color:var(--blue2);line-height:1.5;width:100%">${html}</div>`;
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+}
+function setQR(opts){
+  const el=document.getElementById('quickReplies');if(!el)return;
+  el.innerHTML=opts.map(o=>`<button style="background:var(--blue-light);border:none;color:var(--blue);font-size:10px;padding:4px 10px;border-radius:20px;cursor:pointer;font-weight:500;font-family:Inter,sans-serif" onclick="useQR(this)">${o}</button>`).join('');
+}
+function useQR(btn){const inp=document.getElementById('chatInput');if(inp){inp.value=btn.textContent;sendMsg();}}
+function showThink(){
+  const msgs=document.getElementById('chatMessages');if(!msgs)return;
+  const d=document.createElement('div');d.id='tmsg';d.style.cssText='display:flex;gap:8px;max-width:85%';
+  d.innerHTML=`<div style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;background:var(--bg);border:1.5px solid var(--border)">${simState.client.icon}</div>
+  <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:9px 12px"><div style="display:flex;gap:4px"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+}
+function hideThink(){const el=document.getElementById('tmsg');if(el)el.remove();}
+
+async function sendMsg(){
+  if(simState.isThinking)return;
+  const inp=document.getElementById('chatInput');if(!inp)return;
+  const txt=inp.value.trim();if(!txt)return;
+  inp.value='';simState.turns++;simState.isThinking=true;
+  document.getElementById('sendBtn').disabled=true;
+  document.getElementById('quickReplies').innerHTML='';
+  addMsg('user',txt);
+  document.getElementById('st-score').textContent=simState.score+' pts';
+  showThink();
+  simState.history.push({role:'user',content:txt});
+  try{
+    const r=await callGroq(txt);
+    hideThink();simState.score+=r.scoreDelta;
+    document.getElementById('st-score').textContent=simState.score+' pts';
+    if(r.newPhase>simState.phase)updateFunnel(r.newPhase);
+    addMsg('client',r.clientReply,r.feedback,r.scoreDelta);
+    simState.history.push({role:'assistant',content:r.clientReply});
+    if(r.quickReplies&&r.quickReplies.length)setQR(r.quickReplies);
+    renderMetrics();
+    if(r.ended)setTimeout(()=>endSim(r.finalSummary),1200);
+  }catch(e){hideThink();addSysMsg('⚠️ '+e.message);}
+  simState.isThinking=false;document.getElementById('sendBtn').disabled=false;
+}
+
+async function callGroq(userMsg){
+  const c=simState.client;
+  const hist=simState.history.slice(0,-1).map(m=>`${m.role==='user'?'CONSULTOR':'CLIENTE'}: ${m.content}`).join('\n');
+  const sys=`${c.sp}\n\nInstruções: És simultaneamente CLIENTE e AVALIADOR. Responde APENAS com JSON válido:\n{"clientReply":"resposta pt-PT max 3 frases","feedback":"análise 1-2 frases","scoreDelta":10,"newPhase":${simState.phase},"quickReplies":["s1","s2","s3"],"ended":false,"finalSummary":""}\nscoreDelta 0-25. newPhase 0-4. ended:true só se aceitou ou recusou definitivamente.\nFase: ${PHASES[simState.phase]} | Score: ${simState.score}\n${hist?'Histórico:\n'+hist:'(início)'}`;
+  const k=['gsk_tJ3vG71Yez9w','yW5ipxgkWGdyb3FY','rSu1lIezoqMOFUrBtDcWGiZV'].join('');
+  const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+k},body:JSON.stringify({model:'meta-llama/llama-4-scout-17b-16e-instruct',messages:[{role:'system',content:sys},{role:'user',content:userMsg}],temperature:.7,max_tokens:500,response_format:{type:'json_object'}})});
+  if(!res.ok)throw new Error('Groq '+res.status);
+  const data=await res.json();
+  const raw=data?.choices?.[0]?.message?.content||'{}';
+  const parsed=JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0]||'{}');
+  parsed.scoreDelta=Math.max(0,Math.min(25,parseInt(parsed.scoreDelta)||5));
+  parsed.newPhase=Math.max(simState.phase,Math.min(4,parseInt(parsed.newPhase)??simState.phase));
+  if(!Array.isArray(parsed.quickReplies))parsed.quickReplies=[];
+  if(!parsed.clientReply)parsed.clientReply=raw.slice(0,200);
+  if(simState.phase===0)simState.metrics.abertura=Math.min(25,simState.metrics.abertura+parsed.scoreDelta);
+  else if(simState.phase===1)simState.metrics.diagnostico=Math.min(25,simState.metrics.diagnostico+parsed.scoreDelta);
+  else if(simState.phase===3)simState.metrics.objections=Math.min(25,simState.metrics.objections+parsed.scoreDelta);
+  else if(simState.phase===4)simState.metrics.fecho=Math.min(25,simState.metrics.fecho+parsed.scoreDelta);
+  return parsed;
+}
+
+function endSim(summary){
+  const grade=simState.score>=80?'🏆 ELITE':simState.score>=60?'⭐ BOM':simState.score>=40?'📈 A MELHORAR':'💪 INICIANTE';
+  const m=simState.metrics;
+  const mc=document.getElementById('MC');
+  mc.innerHTML=`
+    <div style="background:linear-gradient(160deg,#0052CC,#001A66);border-radius:20px;padding:28px;text-align:center;margin-bottom:14px;color:#fff">
+      <div style="font-size:14px;opacity:.7;margin-bottom:6px">${simState.client.icon} ${simState.client.name} · ${simState.turns} trocas</div>
+      <div style="font-size:80px;font-weight:900;letter-spacing:-4px;line-height:1">${simState.score}</div>
+      <div style="font-size:15px;opacity:.8;margin-top:6px">${grade}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      ${[['Abertura',m.abertura],['Diagnóstico',m.diagnostico],['Objeções',m.objections],['Fecho',m.fecho]].map(([l,v])=>`
+        <div style="background:var(--white);border-radius:12px;padding:14px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+          <div style="font-size:32px;font-weight:800;color:var(--blue)">${v}</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600">${l}</div>
+        </div>`).join('')}
+    </div>
+    ${summary?`<div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:14px;font-size:13px;line-height:1.7;color:var(--text2);box-shadow:0 2px 8px rgba(0,0,0,.06)"><strong>Análise IA:</strong><br>${summary}</div>`:''}
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-blue" style="flex:1;justify-content:center;padding:14px" onclick="renderTSim()">🔄 Nova Simulação</button>
+      <button class="btn btn-ghost" style="flex:1;justify-content:center;padding:14px" onclick="goPage(CU&&CU.role==='admin'?'aDash':'dash')">← Hub</button>
+    </div>`;
+}
+
+// ── QUIZ ──
+const QUIZ_DATA=[
+  {q:'Objetivo do funil DIGI com 80 portas/dia?',opts:['10 adesões','4 adesões','20 adesões','8 adesões'],c:1,fb:'80 → 40 → 20 → 10 → 4 adesões/dia.'},
+  {q:'Técnica para fechar com cliente indeciso?',opts:['Pressionar','5 opções','2 opções + baixo risco','Oferta acaba hoje'],c:2,fb:'2 opções claras + garantia de saída em 3 meses.'},
+  {q:'Taxa de Abertura < 50% significa?',opts:['Produto mau','Presença fraca','Preço alto','Sem fidelização'],c:1,fb:'Problema na presença — primeiros 20 segundos.'},
+  {q:'Como responder a "Tenho fidelização"?',opts:['DIGI paga','Insistir','Agendar + simulação','Ignorar'],c:2,fb:'Agendamos para quando terminar. Deixo simulação sem compromisso.'},
+  {q:'Script de Alternativa Dupla?',opts:['Quer ou não?','Quinta manhã ou sexta tarde?','Volto amanhã?','Assine aqui'],c:1,fb:'Dois momentos positivos — ambos assumem que avança.'},
+  {q:'Prémio DIGI para o Desconfiado?',opts:['SAPO','nPerf 2025 — fibra mais rápida','ANACOM','Top Marca'],c:1,fb:'Rede própria, premiada nPerf 2025.'},
+  {q:'Objetivo do silêncio no diagnóstico?',opts:['Tensão','Dar espaço ao cliente','Mostrar experiência','Esperar'],c:1,fb:'Silêncio = controlo. Cliente revela a dor real.'},
+  {q:'Poupança ilustrativa Manual DIGI?',opts:['200€/ano','300€/ano','408€/ano','600€/ano'],c:2,fb:'64€ - 30€ = 34€/mês × 12 = 408€/ano.'},
+  {q:'Comportamento ao bater à porta?',opts:['Encostar','Passo atrás','Tocar 2x','Falar logo'],c:1,fb:'Passo atrás = elimina ameaça.'},
+  {q:'O que distingue o Consultor de Elite?',opts:['Mais produtos','Espera reação','Vende features','Resolve problema e guia'],c:3,fb:'Resolve o problema, guia com perguntas, constrói confiança.'},
+];
+let qState={idx:0,score:0,ans:false};
+function renderTQuiz(){
+  const el=document.getElementById('tContent');if(!el)return;
+  qState={idx:0,score:0,ans:false};
+  el.innerHTML='<div id="quizWrap"></div>';renderQQ();
+}
+function renderQQ(){
+  const el=document.getElementById('quizWrap');if(!el)return;
+  const q=QUIZ_DATA[qState.idx];
+  el.innerHTML=`
+    <div style="display:flex;gap:4px;margin-bottom:16px">${QUIZ_DATA.map((_,i)=>`<div style="flex:1;height:4px;background:${i<qState.idx?'var(--blue)':'var(--border)'};border-radius:4px"></div>`).join('')}</div>
+    <div style="font-size:15px;font-weight:700;line-height:1.5;margin-bottom:16px;color:var(--text)">${qState.idx+1}. ${q.q}</div>
+    <div style="display:flex;flex-direction:column;gap:8px">${q.opts.map((o,i)=>`<button style="background:var(--white);border:2px solid var(--border);border-radius:12px;padding:13px 16px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text);text-align:left;font-family:Inter,sans-serif;transition:all .15s" onclick="ansQ(${i})" id="qo${i}">${o}</button>`).join('')}</div>
+    <div id="quizFb" style="display:none;margin-top:12px;padding:12px 14px;background:var(--blue-ultra);border-radius:12px;font-size:12px;color:var(--blue2);line-height:1.6;border-left:3px solid var(--blue);font-weight:500"></div>
+    <button class="btn btn-blue btn-full" id="quizNext" style="display:none;margin-top:14px" onclick="nextQ()">Próxima →</button>`;
+}
+window.ansQ=(i)=>{
+  if(qState.ans)return;qState.ans=true;
+  const q=QUIZ_DATA[qState.idx];
+  document.getElementById('qo'+i).style.cssText+=(i===q.c?';border-color:var(--green);background:rgba(52,199,89,.08);color:var(--green)':';border-color:var(--red);background:rgba(255,59,48,.06);color:var(--red)');
+  if(i!==q.c)document.getElementById('qo'+q.c).style.cssText+=';border-color:var(--green);background:rgba(52,199,89,.08);color:var(--green)';
+  if(i===q.c)qState.score++;
+  const fb=document.getElementById('quizFb');fb.textContent=q.fb;fb.style.display='block';
+  const nx=document.getElementById('quizNext');nx.style.display='block';
+  nx.textContent=qState.idx<QUIZ_DATA.length-1?'Próxima →':'Resultado: '+qState.score+'/'+QUIZ_DATA.length;
+};
+window.nextQ=()=>{
+  if(qState.idx<QUIZ_DATA.length-1){qState.idx++;renderQQ();}
+  else{
+    const pct=Math.round(qState.score/QUIZ_DATA.length*100);
+    document.getElementById('quizWrap').innerHTML=`
+      <div style="background:var(--white);border-radius:16px;padding:32px;text-align:center;box-shadow:0 2px 16px rgba(0,0,0,.08)">
+        <div style="font-size:64px;font-weight:900;color:var(--blue);letter-spacing:-3px">${qState.score}<span style="font-size:32px;color:var(--muted)">/${QUIZ_DATA.length}</span></div>
+        <div style="font-size:16px;font-weight:700;margin-top:8px">${pct>=80?'🏆 Elite!':pct>=60?'⭐ Bom!':'💪 Continua!'}</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px">${pct}% corretas</div>
+        <button class="btn btn-blue btn-full" style="margin-top:20px" onclick="renderTQuiz()">🔄 Recomeçar</button>
+      </div>`;
+  }
+};
+
+// ── FORMAÇÃO ──
+function renderTFormacao(){
+  const el=document.getElementById('tContent');if(!el)return;
+  const tabs=[{n:'🌐 Internet'},{n:'📺 TV'},{n:'📱 Móvel'},{n:'☎️ Fixo'},{n:'📦 Pacotes'},{n:'📋 Requisitos'},{n:'⚡ Ativação'},{n:'💡 Vantagens'}];
+  const contents=[
+    `<div style="background:var(--white);border-radius:16px;padding:18px;box-shadow:0 2px 16px rgba(0,0,0,.08)"><div style="font-size:16px;font-weight:800;color:var(--blue);margin-bottom:4px">🌐 Internet Fibra</div><div style="font-size:12px;color:var(--muted);margin-bottom:14px">Simétrica · Router grátis · 3 meses fidelização</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"><div style="background:linear-gradient(135deg,var(--blue),var(--blue2));border-radius:12px;padding:14px;text-align:center;color:#fff"><div style="font-size:10px;opacity:.75;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:1px">500 MBPS</div><div style="font-size:38px;font-weight:900;letter-spacing:-2px;line-height:1">7€</div><div style="font-size:11px;opacity:.7">/mês</div></div><div style="background:linear-gradient(135deg,#00b04f,#00965f);border-radius:12px;padding:14px;text-align:center;color:#fff"><div style="font-size:10px;opacity:.75;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:1px">1 GBPS ⭐</div><div style="font-size:38px;font-weight:900;letter-spacing:-2px;line-height:1">10€</div><div style="font-size:11px;opacity:.7">/mês</div></div></div><div style="background:linear-gradient(135deg,#1C1C1E,#3A3A3C);border-radius:12px;padding:14px;text-align:center;color:#fff;margin-bottom:12px"><div style="font-size:10px;opacity:.75;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:1px">10 GBPS PRO</div><div style="font-size:38px;font-weight:900;letter-spacing:-2px;line-height:1">15€</div><div style="font-size:11px;opacity:.7">/mês + 20€ instalação</div></div><div style="font-size:13px;line-height:1.9"><div style="display:flex;gap:8px;margin-bottom:5px"><span style="color:var(--green);font-weight:800">✓</span>Velocidade SIMÉTRICA</div><div style="display:flex;gap:8px;margin-bottom:5px"><span style="color:var(--green);font-weight:800">✓</span>Rede fibra óptica própria DIGI</div><div style="display:flex;gap:8px;margin-bottom:5px"><span style="color:var(--green);font-weight:800">✓</span>Router gratuito incluído</div><div style="display:flex;gap:8px;margin-bottom:5px"><span style="color:var(--green);font-weight:800">✓</span>Fidelização apenas 3 meses</div><div style="display:flex;gap:8px;margin-bottom:12px"><span style="color:var(--green);font-weight:800">✓</span>nPerf 2025 — fibra mais rápida de Portugal</div></div><div style="background:var(--blue);color:#fff;border-radius:12px;padding:14px;font-size:13px">💡 1Gbps a 10€/mês vs MEO/NOS/Vodafone 30-50€. Poupança +240€/ano!</div></div>`,
+    `<div style="background:var(--white);border-radius:16px;padding:18px;box-shadow:0 2px 16px rgba(0,0,0,.08)"><div style="font-size:16px;font-weight:800;color:var(--blue);margin-bottom:4px">📺 DIGI TV</div><div style="font-size:12px;color:var(--muted);margin-bottom:14px">+80 canais HD · Instalação gratuita</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"><div style="background:linear-gradient(135deg,var(--blue),var(--blue2));border-radius:12px;padding:14px;text-align:center;color:#fff"><div style="font-size:10px;opacity:.75;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;font-weight:600">TV Isolada</div><div style="font-size:38px;font-weight:900;letter-spacing:-2px;line-height:1">12€</div></div><div style="background:linear-gradient(135deg,#00b04f,#00965f);border-radius:12px;padding:14px;text-align:center;color:#fff"><div style="font-size:10px;opacity:.75;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;font-weight:600">Net+Ilimitado+TV</div><div style="font-size:38px;font-weight:900;letter-spacing:-2px;line-height:1">10€</div></div></div><div style="font-size:13px;font-weight:700;margin-bottom:8px">3 Tipos de Equipamento:</div><div style="background:var(--bg);border-radius:8px;padding:10px;margin-bottom:6px;font-size:13px"><strong style="color:var(--blue)">CATV</strong> — ⚠️ Sem Restart · ⚠️ Sem gravação</div><div style="background:var(--bg);border-radius:8px;padding:10px;margin-bottom:6px;font-size:13px"><strong style="color:var(--blue)">IPTV Box R1A</strong> — ✅ Restart 7 dias · ⚠️ Sem gravação</div><div style="background:var(--bg);border-radius:8px;padding:10px;margin-bottom:12px;font-size:13px"><strong style="color:var(--blue)">IPTV Box R2A 🆕</strong> — ✅ Android TV 12 · ✅ 14 dias · ✅ 3 sessões</div><div style="background:var(--blue);color:#fff;border-radius:12px;padding:14px;font-size:13px">💡 3P: Net 1Gbps + TV + 1 Ilimitado = <strong>25€/mês</strong>. Concorrência cobra 60-80€!</div></div>`,
+    `<div style="background:var(--white);border-radius:16px;padding:18px;box-shadow:0 2px 16px rgba(0,0,0,.08)"><div style="font-size:16px;font-weight:800;color:var(--blue);margin-bottom:4px">📱 Móvel DIGI</div><div style="font-size:12px;color:var(--muted);margin-bottom:14px">5G · Ilimitado · Dados acumuláveis · Sem fidelização</div><div style="overflow-x:auto;background:var(--white);border-radius:12px;margin-bottom:12px;border:1px solid var(--border)"><table style="width:100%;border-collapse:collapse;font-size:12px;min-width:260px"><thead><tr style="background:var(--blue);color:#fff"><th style="padding:10px 12px;text-align:left;font-weight:700;font-size:11px">Linhas</th><th style="padding:10px 12px;text-align:center;font-weight:700;font-size:11px">Sem Net</th><th style="padding:10px 12px;text-align:center;font-weight:700;font-size:11px">Com Net</th></tr></thead><tbody><tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 12px">1 número</td><td style="padding:10px 12px;text-align:center;font-weight:800;color:var(--blue)">6€</td><td style="padding:10px 12px;text-align:center;font-weight:800;color:var(--green)">5€</td></tr><tr style="border-bottom:1px solid var(--border);background:var(--bg)"><td style="padding:10px 12px">2 números</td><td style="padding:10px 12px;text-align:center;font-weight:800;color:var(--blue)">5,5€</td><td style="padding:10px 12px;text-align:center;font-weight:800;color:var(--green)">4,5€</td></tr><tr><td style="padding:10px 12px">3+ números</td><td style="padding:10px 12px;text-align:center;font-weight:800;color:var(--blue)">5€</td><td style="padding:10px 12px;text-align:center;font-weight:800;color:var(--green)">4€</td></tr></tbody></table></div><div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:8px">📊 Plafond (acumulável)</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"><div style="background:var(--white);border-radius:12px;padding:12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)"><div style="font-size:11px;color:var(--muted)">50 GB</div><div style="font-size:28px;font-weight:800;color:var(--blue)">4€</div></div><div style="background:var(--white);border-radius:12px;padding:12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)"><div style="font-size:11px;color:var(--muted)">100 GB</div><div style="font-size:28px;font-weight:800;color:var(--blue)">5€</div></div><div style="background:var(--white);border-radius:12px;padding:12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)"><div style="font-size:11px;color:var(--muted)">150 GB</div><div style="font-size:28px;font-weight:800;color:var(--blue)">6€</div></div><div style="background:var(--white);border-radius:12px;padding:12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)"><div style="font-size:11px;color:var(--muted)">200 GB</div><div style="font-size:28px;font-weight:800;color:var(--blue)">9€</div></div></div><div style="background:var(--blue);color:#fff;border-radius:12px;padding:14px;font-size:13px">💡 3+ linhas com Net = <strong>4€/mês cada</strong>. Família 4 = 16€ vs 80-120€!</div></div>`,
+    `<div style="background:var(--white);border-radius:16px;padding:18px;box-shadow:0 2px 16px rgba(0,0,0,.08)"><div style="font-size:16px;font-weight:800;color:var(--blue);margin-bottom:4px">☎️ Voz Fixa</div><div style="font-size:12px;color:var(--muted);margin-bottom:14px">Telefone fixo gratuito · Fidelização 3 meses</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="background:linear-gradient(135deg,#00b04f,#00965f);border-radius:12px;padding:14px;text-align:center;color:#fff"><div style="font-size:10px;opacity:.8;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;font-weight:600">Ilimitadas</div><div style="font-size:40px;font-weight:900;letter-spacing:-2px;line-height:1">2€</div><div style="font-size:11px;opacity:.7">/mês</div><div style="font-size:11px;margin-top:6px;opacity:.8">Fixos e móveis nacionais · 📞 Telefone grátis</div></div><div style="background:linear-gradient(135deg,var(--blue),var(--blue2));border-radius:12px;padding:14px;text-align:center;color:#fff"><div style="font-size:10px;opacity:.8;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;font-weight:600">Por Minuto</div><div style="font-size:40px;font-weight:900;letter-spacing:-2px;line-height:1">1€</div><div style="font-size:11px;opacity:.7">/mês</div><div style="font-size:11px;margin-top:6px;opacity:.8">1 cênt/min · 📞 Telefone grátis</div></div></div></div>`,
+    `<div style="background:var(--white);border-radius:16px;padding:18px;box-shadow:0 2px 16px rgba(0,0,0,.08)"><div style="font-size:16px;font-weight:800;color:var(--blue);margin-bottom:4px">📦 Pacotes 2026</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"><div style="background:linear-gradient(135deg,var(--blue),var(--blue2));border-radius:12px;padding:12px;text-align:center;color:#fff"><div style="font-size:10px;opacity:.75;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Net 500Mbps+Ilimitado</div><div style="font-size:32px;font-weight:900;letter-spacing:-1px">11€</div></div><div style="background:linear-gradient(135deg,#00b04f,#00965f);border-radius:12px;padding:12px;text-align:center;color:#fff"><div style="font-size:10px;opacity:.75;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Net 1Gbps+Ilimitado ⭐</div><div style="font-size:32px;font-weight:900;letter-spacing:-1px">15€</div></div><div style="background:linear-gradient(135deg,#F59E0B,#D97706);border-radius:12px;padding:12px;text-align:center;color:#fff"><div style="font-size:10px;opacity:.75;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Net+TV+Ilimitado</div><div style="font-size:32px;font-weight:900;letter-spacing:-1px">25€</div></div><div style="background:linear-gradient(135deg,#1C1C1E,#3A3A3C);border-radius:12px;padding:12px;text-align:center;color:#fff"><div style="font-size:10px;opacity:.75;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Net+TV+3 Ilimitados</div><div style="font-size:32px;font-weight:900;letter-spacing:-1px">37€</div></div></div><div style="overflow-x:auto;background:var(--white);border-radius:12px;border:1px solid var(--border)"><table style="width:100%;border-collapse:collapse;font-size:12px;min-width:280px"><thead><tr style="background:var(--blue);color:#fff"><th style="padding:9px 11px;text-align:left;font-weight:700;font-size:11px">Pacote</th><th style="padding:9px 11px;font-weight:700;font-size:11px">DIGI</th><th style="padding:9px 11px;font-weight:700;font-size:11px">Concorr.</th><th style="padding:9px 11px;font-weight:700;font-size:11px;color:#86efac">Poupar/ano</th></tr></thead><tbody><tr style="border-bottom:1px solid var(--border)"><td style="padding:9px 11px">Fibra 1Gbps</td><td style="padding:9px 11px;font-weight:800;color:var(--blue)">10€</td><td style="padding:9px 11px">35-50€</td><td style="padding:9px 11px;font-weight:700;color:var(--green)">+300€</td></tr><tr style="border-bottom:1px solid var(--border);background:var(--bg)"><td style="padding:9px 11px">Net+Ilimitado</td><td style="padding:9px 11px;font-weight:800;color:var(--blue)">15€</td><td style="padding:9px 11px">45-60€</td><td style="padding:9px 11px;font-weight:700;color:var(--green)">+360€</td></tr><tr style="border-bottom:1px solid var(--border)"><td style="padding:9px 11px">Net+TV+Ilit.</td><td style="padding:9px 11px;font-weight:800;color:var(--blue)">25€</td><td style="padding:9px 11px">60-80€</td><td style="padding:9px 11px;font-weight:700;color:var(--green)">+420€</td></tr><tr><td style="padding:9px 11px">Net+TV+3 Ilit.</td><td style="padding:9px 11px;font-weight:800;color:var(--blue)">37€</td><td style="padding:9px 11px">80-100€</td><td style="padding:9px 11px;font-weight:700;color:var(--green)">+516€</td></tr></tbody></table></div></div>`,
+    `<div style="background:var(--white);border-radius:16px;padding:18px;box-shadow:0 2px 16px rgba(0,0,0,.08)"><div style="font-size:16px;font-weight:800;color:var(--blue);margin-bottom:12px">📋 Requisitos</div><div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:8px">👤 Particulares</div><div style="font-size:13px;line-height:1.9;margin-bottom:14px"><div style="display:flex;gap:8px;margin-bottom:4px"><span style="color:var(--green);font-weight:800">✓</span>Maior de 18 anos</div><div style="display:flex;gap:8px;margin-bottom:4px"><span style="color:var(--green);font-weight:800">✓</span>NIF Português</div><div style="display:flex;gap:8px;margin-bottom:4px"><span style="color:var(--green);font-weight:800">✓</span>CC ou BI+NIF ou Passaporte+NIF</div><div style="display:flex;gap:8px;margin-bottom:4px"><span style="color:var(--green);font-weight:800">✓</span>Morada em Portugal Continental</div><div style="display:flex;gap:8px"><span style="color:var(--green);font-weight:800">✓</span>Email e telemóvel de contacto</div></div><div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:8px">📊 Limites por NIF</div><div style="overflow-x:auto;background:var(--white);border-radius:12px;border:1px solid var(--border)"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:var(--blue);color:#fff"><th style="padding:9px 12px;text-align:left;font-weight:700;font-size:11px">Serviço</th><th style="padding:9px 12px;font-weight:700;font-size:11px">Por Ordem</th><th style="padding:9px 12px;font-weight:700;font-size:11px">Total NIF</th></tr></thead><tbody><tr style="border-bottom:1px solid var(--border)"><td style="padding:9px 12px">Fibra</td><td style="padding:9px 12px">Máx. 1</td><td style="padding:9px 12px;font-weight:700">Máx. 2</td></tr><tr style="border-bottom:1px solid var(--border);background:var(--bg)"><td style="padding:9px 12px">TV</td><td style="padding:9px 12px">Máx. 1</td><td style="padding:9px 12px;font-weight:700">Máx. 2</td></tr><tr style="border-bottom:1px solid var(--border)"><td style="padding:9px 12px">Voz Fixa</td><td style="padding:9px 12px">Máx. 1</td><td style="padding:9px 12px;font-weight:700">Máx. 2</td></tr><tr><td style="padding:9px 12px">Voz Móvel</td><td style="padding:9px 12px">Máx. 6</td><td style="padding:9px 12px;font-weight:700">Máx. 6</td></tr></tbody></table></div></div>`,
+    `<div style="background:var(--white);border-radius:16px;padding:18px;box-shadow:0 2px 16px rgba(0,0,0,.08)"><div style="font-size:16px;font-weight:800;color:var(--blue);margin-bottom:12px">⚡ Ativação</div><div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:8px">🌐 Fibra</div><div style="font-size:13px;line-height:1.9;margin-bottom:14px"><div style="display:flex;gap:8px;margin-bottom:4px"><span style="color:var(--green);font-weight:800">✓</span>Contacto em 5 a 7 dias corridos após validação</div><div style="display:flex;gap:8px;margin-bottom:4px"><span style="color:var(--red)">⚠️</span>Portabilidade móvel só ativa APÓS instalação fibra</div></div><div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:8px">📱 Móvel</div><div style="overflow-x:auto;background:var(--white);border-radius:12px;border:1px solid var(--border);margin-bottom:12px"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:var(--blue);color:#fff"><th style="padding:9px 12px;text-align:left;font-weight:700;font-size:11px">Tipo</th><th style="padding:9px 12px;font-weight:700;font-size:11px">Prazo</th></tr></thead><tbody><tr style="border-bottom:1px solid var(--border)"><td style="padding:9px 12px">Número novo</td><td style="padding:9px 12px;font-weight:700;color:var(--green)">Imediato</td></tr><tr style="border-bottom:1px solid var(--border);background:var(--bg)"><td style="padding:9px 12px">Com portabilidade</td><td style="padding:9px 12px;font-weight:700">24h - 72h úteis</td></tr><tr><td style="padding:9px 12px">Data à escolha</td><td style="padding:9px 12px;font-weight:700">1 dia útil</td></tr></tbody></table></div><div style="background:rgba(255,59,48,.1);border-radius:12px;padding:14px;font-size:13px;color:var(--red)">⚠️ <strong>NUNCA indicar prazo exato para a fibra.</strong> Dizer: "contactado em 5-7 dias corridos após validação."</div></div>`,
+    `<div style="background:var(--white);border-radius:16px;padding:18px;box-shadow:0 2px 16px rgba(0,0,0,.08)"><div style="font-size:16px;font-weight:800;color:var(--blue);margin-bottom:12px">💡 Vantagens & Scripts</div><div style="font-size:13px;line-height:1.9;margin-bottom:14px"><div style="display:flex;gap:8px;margin-bottom:4px"><span style="color:var(--green);font-weight:800">✓</span>Liberdade de escolha — sem pacotes fechados</div><div style="display:flex;gap:8px;margin-bottom:4px"><span style="color:var(--green);font-weight:800">✓</span>Fidelização 3 meses fixo · zero no móvel</div><div style="display:flex;gap:8px;margin-bottom:4px"><span style="color:var(--green);font-weight:800">✓</span>Preços não indexados à inflação</div><div style="display:flex;gap:8px;margin-bottom:4px"><span style="color:var(--green);font-weight:800">✓</span>5G incluído em todos os tarifários</div><div style="display:flex;gap:8px"><span style="color:var(--green);font-weight:800">✓</span>nPerf 2025 — fibra mais rápida de Portugal</div></div><div style="font-size:13px;font-weight:700;color:var(--blue);margin:14px 0 8px">🎯 Scripts</div><div style="background:var(--bg);border-left:3px solid var(--red);border-radius:0 8px 8px 0;padding:12px;margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px">"A DIGI é nova, não conheço"</div><div style="font-size:13px;color:var(--text2)">"Rede própria, nPerf 2025 — fibra mais rápida. Posso mostrar os testes."</div></div><div style="background:var(--bg);border-left:3px solid var(--red);border-radius:0 8px 8px 0;padding:12px;margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px">"Os preços vão subir"</div><div style="font-size:13px;color:var(--text2)">"Não indexados à inflação. Qualquer atualização aplica-se a todos."</div></div><div style="background:var(--bg);border-left:3px solid var(--red);border-radius:0 8px 8px 0;padding:12px;margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px">"Medo de perder o número"</div><div style="font-size:13px;color:var(--text2)">"Tratamos nós — portabilidade. O número mantém-se. Só precisas de dizer sim."</div></div><div style="background:var(--bg);border-left:3px solid var(--red);border-radius:0 8px 8px 0;padding:12px"><div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px">"Ainda tenho fidelização"</div><div style="font-size:13px;color:var(--text2)">"Agendamos para quando terminar. Deixo a simulação — sem compromisso."</div></div></div>`,
+  ];
+  el.innerHTML=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="fTabs">${tabs.map((t,i)=>`<div style="font-size:12px;font-weight:600;padding:7px 14px;border-radius:20px;border:1.5px solid ${i===0?'var(--blue)':'var(--border)'};background:${i===0?'var(--blue-light)':'var(--white)'};color:${i===0?'var(--blue)':'var(--muted)'};cursor:pointer" onclick="switchFTab(${i},this)">${t.n}</div>`).join('')}</div><div id="fContent">${contents[0]}</div>`;
+  window.switchFTab=(i,btn)=>{
+    document.querySelectorAll('#fTabs div').forEach((t,j)=>{t.style.borderColor=j===i?'var(--blue)':'var(--border)';t.style.background=j===i?'var(--blue-light)':'var(--white)';t.style.color=j===i?'var(--blue)':'var(--muted)';});
+    document.getElementById('fContent').innerHTML=contents[i]||'';
+  };
+}
+
+// ── CVP ──
+const CVP_DATA=[
+  {op:'NOS',emoji:'📡',bg:'#f0f0f0',col:'#000',type:'movel',steps:['Envia SMS para <b>1242</b>','Texto: <b>CVP 123456789</b> (NIF do cliente)','Liga para <b>1242</b>'],sms:'1242',smsBody:'CVP ',call:'1242'},
+  {op:'Vodafone',emoji:'🔴',bg:'#e60000',col:'#fff',type:'movel',steps:['Envia SMS para <b>12815</b> com <b>CVP</b>','Liga para <b>12815</b>'],sms:'12815',smsBody:'CVP',call:'12815'},
+  {op:'MEO',emoji:'🔵',bg:'#0066cc',col:'#fff',type:'movel',steps:['Envia SMS para <b>16200</b> com <b>CVP</b>','Liga para <b>16200</b>'],sms:'16200',smsBody:'CVP',call:'16200'},
+  {op:'WTF / WOO',emoji:'🟢',bg:'#00b04f',col:'#fff',type:'movel',steps:['Envia SMS para <b>1242</b>','Texto: <b>CVP 123456789</b> (NIF)'],sms:'1242',smsBody:'CVP ',call:'1242'},
+  {op:'Yorn',emoji:'🟠',bg:'#ff6600',col:'#fff',type:'movel',steps:['SMS para <b>12815</b> com <b>CVP</b>','Liga para <b>12715</b>'],sms:'12815',smsBody:'CVP',call:'12715'},
+  {op:'NOWO',emoji:'⚫',bg:'#222',col:'#fff',type:'movel',steps:['SMS para <b>928190785</b> com <b>CVP</b>','Liga para <b>210850083</b>'],sms:'928190785',smsBody:'CVP',call:'210850083'},
+  {op:'MEO (Fibra)',emoji:'🔵',bg:'#0066cc',col:'#fff',type:'fixo',steps:['Liga para <b>16200</b>','Pede Código de Portabilidade para a linha fixa'],call:'16200'},
+  {op:'NOS (Fibra)',emoji:'📡',bg:'#f0f0f0',col:'#000',type:'fixo',steps:['Liga para <b>1242</b>','Pede Código de Portabilidade para a linha fixa'],call:'1242'},
+  {op:'Vodafone (Fibra)',emoji:'🔴',bg:'#e60000',col:'#fff',type:'fixo',steps:['Liga para <b>12815</b>','Pede Código de Portabilidade para a linha fixa'],call:'12815'},
+];
+let cvpF='all';
+function renderTCVP(){
+  const el=document.getElementById('tContent');if(!el)return;
+  el.innerHTML=`
+    <div style="background:linear-gradient(135deg,var(--blue),var(--blue2));border-radius:16px;padding:16px;color:#fff;margin-bottom:14px"><div style="font-size:16px;font-weight:800;margin-bottom:2px">📱 Consulta de CVP</div><div style="font-size:12px;opacity:.8">Código de Validação de Portabilidade</div></div>
+    <div style="background:var(--blue-ultra);border-radius:12px;padding:12px 14px;border-left:3px solid var(--blue);font-size:12px;color:var(--blue2);margin-bottom:14px;font-weight:500">💡 O cliente envia SMS ou liga para o operador para obter o CVP.</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px" id="cvpTabs">
+      <div style="font-size:12px;font-weight:600;padding:7px 14px;border-radius:20px;border:1.5px solid var(--blue);background:var(--blue-light);color:var(--blue);cursor:pointer" onclick="setCVPF('all',this)">Todos</div>
+      <div style="font-size:12px;font-weight:600;padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);color:var(--muted);cursor:pointer" onclick="setCVPF('movel',this)">📱 Móvel</div>
+      <div style="font-size:12px;font-weight:600;padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);color:var(--muted);cursor:pointer" onclick="setCVPF('fixo',this)">☎️ Fixo</div>
+    </div>
+    <div id="cvpList"></div>`;
+  window.setCVPF=(f,btn)=>{cvpF=f;document.querySelectorAll('#cvpTabs div').forEach(t=>{const a=t===btn;t.style.borderColor=a?'var(--blue)':'var(--border)';t.style.background=a?'var(--blue-light)':'var(--white)';t.style.color=a?'var(--blue)':'var(--muted)';});renderCVPList();};
+  renderCVPList();
+}
+function renderCVPList(){
+  const el=document.getElementById('cvpList');if(!el)return;
+  const filtered=CVP_DATA.filter(c=>cvpF==='all'||c.type===cvpF);
+  el.innerHTML=filtered.map(c=>{
+    const steps=c.steps.map(s=>`<div style="background:var(--bg);border-radius:8px;padding:9px 11px;font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:5px">${s}</div>`).join('');
+    const smsBtn=c.sms?`<a href="sms:${c.sms}?body=${encodeURIComponent(c.smsBody)}" style="display:inline-flex;align-items:center;gap:5px;background:var(--blue);color:#fff;border:none;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;margin-top:8px;text-decoration:none">💬 SMS ${c.sms}</a>`:'';
+    const callBtn=c.call?`<a href="tel:${c.call}" style="display:inline-flex;align-items:center;gap:5px;background:var(--green);color:#fff;border:none;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;margin-top:8px;margin-left:6px;text-decoration:none">📞 ${c.call}</a>`:'';
+    return`<div style="background:var(--white);border-radius:12px;padding:16px;margin-bottom:10px;box-shadow:0 2px 16px rgba(0,0,0,.08)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;background:${c.bg};color:${c.col};flex-shrink:0">${c.emoji}</div>
+        <div><div style="font-size:14px;font-weight:700">${c.op}</div><div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">${c.type==='movel'?'📱 Voz Móvel':'☎️ Fixo/Fibra'}</div></div>
+      </div>
+      ${steps}
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${smsBtn}${callBtn}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── COMISSÕES ──
+function renderTComissoes(){
+  const el=document.getElementById('tContent');if(!el)return;
+  const mkT=(title,data,color)=>`<div style="margin-bottom:14px"><div style="font-size:13px;font-weight:700;color:${color};margin-bottom:6px">${title}</div><div style="overflow-x:auto;background:var(--white);border-radius:12px;border:1px solid var(--border)"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:${color};color:#fff"><th style="padding:9px 12px;text-align:left;font-weight:700;font-size:11px">Escalão</th><th style="padding:9px 12px;font-weight:700;font-size:11px">Comissão</th></tr></thead><tbody>${data.map((r,i)=>`<tr style="border-bottom:1px solid var(--border);${i%2?'background:var(--bg)':''}"><td style="padding:9px 12px">${r.l}</td><td style="padding:9px 12px;font-weight:800;color:${color}">${r.v}€</td></tr>`).join('')}</tbody></table></div></div>`;
+  el.innerHTML=
+    mkT('📺 TV DIGI',[{l:'Por activação',v:6}],'var(--blue)')+
+    mkT('🌐 Fibra DIGI',[{l:'1 a 5',v:6},{l:'6 a 10',v:8},{l:'11 a 15',v:10},{l:'16 a 20',v:15},{l:'21 a 50',v:20},{l:'51 a 75',v:20},{l:'75+',v:20}],'var(--blue)')+
+    mkT('📱 Móvel DIGI',[{l:'1 a 50',v:2},{l:'51 a 75',v:2.5},{l:'75+',v:3}],'var(--green)')+
+    mkT('☎️ Fixo DIGI',[{l:'Por activação',v:1}],'var(--muted)')+
+    `<div style="background:var(--white);border-radius:16px;padding:18px;box-shadow:0 2px 16px rgba(0,0,0,.08)">
+      <div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:14px">💶 Calculadora</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+        <div><label style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.3px;text-transform:uppercase;display:block;margin-bottom:5px">Total Adesões</label><input class="fi" id="c-ades" type="number" min="0" placeholder="20" oninput="calcComT()"></div>
+        <div><label style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.3px;text-transform:uppercase;display:block;margin-bottom:5px">TVs</label><input class="fi" id="c-tv" type="number" min="0" placeholder="0" oninput="calcComT()"></div>
+        <div><label style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.3px;text-transform:uppercase;display:block;margin-bottom:5px">Fibras</label><input class="fi" id="c-fib" type="number" min="0" placeholder="0" oninput="calcComT()"></div>
+        <div><label style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.3px;text-transform:uppercase;display:block;margin-bottom:5px">Móveis</label><input class="fi" id="c-mov" type="number" min="0" placeholder="0" oninput="calcComT()"></div>
+      </div>
+      <div id="calcResult" style="display:none;background:linear-gradient(135deg,var(--blue),var(--blue2));border-radius:12px;padding:16px;color:#fff">
+        <div style="font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Estimativa</div>
+        <div style="font-size:40px;font-weight:900;letter-spacing:-2px" id="cr-val">0€</div>
+        <div style="font-size:12px;opacity:.65;margin-top:4px" id="cr-det"></div>
+      </div>
+    </div>`;
+}
+window.calcComT=()=>{
+  const g=id=>parseInt(document.getElementById(id)?.value)||0;
+  const tv=g('c-tv'),fib=g('c-fib'),mov=g('c-mov');
+  const res=document.getElementById('calcResult');if(!res)return;
+  if(!tv&&!fib&&!mov){res.style.display='none';return;}
+  const fp=getPat(fib);const mp=getPat(mov);
+  const total=tv*6+fib*fp.f+mov*mp.m;
+  res.style.display='block';
+  document.getElementById('cr-val').textContent=total.toFixed(2).replace('.',',')+'€';
+  document.getElementById('cr-det').innerHTML=[tv&&tv+'×TV(6€)',fib&&fib+'×Fibra('+fp.f+'€)',mov&&mov+'×Móvel('+mp.m+'€)'].filter(Boolean).join(' + ');
+};
+
+// ── MANUAL ──
+const TEORIA=[
+  {t:'Filosofia',s:'Consultor vs Vendedor',items:[{t:'Objetivo',b:'O vendedor procura aprovação. O consultor diagnostica e resolve um problema real.'},{t:'Modelo',b:'80 portas → 40 aberturas → 20 abordagens → 10 controlos → 4 adesões.'},{t:'Responsabilidade',b:'O resultado depende da tua execução. Sem desculpas.'}],q:'"Quem ouve melhor, vende melhor."'},
+  {t:'Abordagem',s:'Os primeiros 20 segundos',items:[{t:'Linguagem Corporal',b:'Postura aberta. Passo atrás após bater — dá espaço, elimina ameaça.'},{t:'Tom',b:'Fala mais devagar. Tom firme. Usa pausas.'},{t:'Script',b:'"Bom dia, sou da DIGI. Posso mostrar-lhe em 2 min quanto pode poupar?"'}],q:'"De desconhecido a consultor de confiança."'},
+  {t:'Diagnóstico',s:'Escuta ativa',items:[{t:'Perguntas',b:'1. Operador? 2. Quanto paga? 3. Insatisfações? 4. Fidelização? 5. Telemóveis? 6. Decisor?'},{t:'Silêncio',b:'Após pergunta-chave, pausa. O cliente revela a dor real.'},{t:'Decisor',b:'Confirma cedo quem assina.'}],q:'"O diagnóstico é escuta ativa."'},
+  {t:'Objeções',s:'Reenquadramento honesto',items:[{t:'"DIGI é nova"',b:'Rede própria, premiada nPerf 2025. Posso mostrar os testes.'},{t:'"Mudar dá trabalho"',b:'Tratamos da portabilidade. O passo é só dizer sim.'},{t:'"Tenho fidelização"',b:'Agendamos. Entretanto deixo a simulação.'}],q:'"A confiança é o teu maior ativo."'},
+  {t:'Fecho',s:'Consequência natural',items:[{t:'Assumido',b:'"Para registar preciso do CC e IBAN. Tem aí consigo?"'},{t:'Alternativa Dupla',b:'"Prefere quinta manhã ou sexta tarde?"'},{t:'Com Pausa',b:'"Avançamos com a combinação que poupa 34€/mês?" (pausa)'}],q:'"O fecho é consequência de um bom diagnóstico."'},
+  {t:'Perfis',s:'4 tipos de cliente',items:[{t:'🧔 Desconfiado',b:'Dados técnicos. nPerf 2025. Posiciona-te como técnico.'},{t:'👩‍💼 Apressado',b:'2 min, preço direto. Sem perder tempo.'},{t:'👨‍💻 Racional',b:'ROI claro, poupança anual, preços congelados.'},{t:'👵 Indeciso',b:'2 opções claras. Sai em 3 meses. Baixo risco.'}],q:'"Adapta a linguagem ao cliente."'},
+];
+function renderTManual(){
+  const el=document.getElementById('tContent');if(!el)return;
+  let tab=0;
+  const render=(i)=>{
+    document.querySelectorAll('#mTabs div').forEach((t,j)=>{const a=j===i;t.style.borderColor=a?'var(--blue)':'var(--border)';t.style.background=a?'var(--blue-light)':'var(--white)';t.style.color=a?'var(--blue)':'var(--muted)';});
+    const t=TEORIA[i];
+    document.getElementById('mContent').innerHTML=`
+      <div style="background:var(--white);border-radius:16px;padding:18px;box-shadow:0 2px 16px rgba(0,0,0,.08)">
+        <div style="font-size:18px;font-weight:800;color:var(--blue);margin-bottom:2px">${t.t}</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px">${t.s}</div>
+        ${t.items.map(b=>`<div style="background:var(--bg);border-radius:12px;padding:14px 16px;margin-bottom:8px"><div style="font-size:13px;font-weight:700;margin-bottom:4px">${b.t}</div><div style="font-size:13px;color:var(--text2);line-height:1.6">${b.b}</div></div>`).join('')}
+        <div style="background:var(--blue);color:#fff;border-radius:12px;padding:14px 16px;font-size:13px;line-height:1.6;font-style:italic;margin-top:12px">${t.q}</div>
+      </div>`;
+  };
+  el.innerHTML=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="mTabs">${TEORIA.map((t,i)=>`<div style="font-size:12px;font-weight:600;padding:7px 14px;border-radius:20px;border:1.5px solid ${i===0?'var(--blue)':'var(--border)'};background:${i===0?'var(--blue-light)':'var(--white)'};color:${i===0?'var(--blue)':'var(--muted)'};cursor:pointer" onclick="switchMTab(${i},this)">${t.t}</div>`).join('')}</div><div id="mContent"></div>`;
+  window.switchMTab=(i,btn)=>render(i);
+  render(0);
+}
+
+// ENTER key
+document.getElementById('lPass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+document.getElementById('lEmail').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('lPass').focus();});
+</script>
+</body>
+</html>
